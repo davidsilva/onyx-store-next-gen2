@@ -2,6 +2,8 @@ import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 import outputs from "@/../amplify_outputs.json";
 import { cookies } from "next/headers";
 import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth/server";
+import { type Schema } from "@/../amplify/data/resource";
+import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/data";
 
 export const { runWithAmplifyServerContext } = createServerRunner({
   config: outputs,
@@ -42,3 +44,9 @@ export const isAdmin = async (): Promise<boolean> => {
     },
   });
 };
+
+export const cookieBasedClient = generateServerClientUsingCookies<Schema>({
+  config: outputs,
+  cookies,
+  authMode: "iam",
+});
