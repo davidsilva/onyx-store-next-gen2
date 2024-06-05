@@ -73,7 +73,7 @@ export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
       label: "Home",
     },
     {
-      href: "/create-product",
+      href: "/product-create",
       label: "Add Product",
       isAdmin: true,
     },
