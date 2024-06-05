@@ -3,11 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Auth from "@/components/auth/Auth";
 import NavBar from "@/components/NavBar";
-import {
-  isAuthenticated,
-  isAdmin,
-  runWithAmplifyServerContext,
-} from "@/utils/amplify-utils";
+import { isAuthenticated } from "@/utils/amplify-utils";
 import { cookies } from "next/headers";
 import { getCurrentUser } from "aws-amplify/auth/server";
 import ConfigureAmplifyClientSide from "@/components/ConfigureAmplifyClientSide";
@@ -27,10 +23,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <NavBar
-          isSignedIn={await isAuthenticated()}
-          isAdmin={await isAdmin()}
-        />
+        <NavBar isSignedIn={await isAuthenticated()} />
         <Auth>{children}</Auth>
       </body>
     </html>
