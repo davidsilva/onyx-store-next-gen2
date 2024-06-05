@@ -4,9 +4,6 @@ import "./globals.css";
 import Auth from "@/components/auth/Auth";
 import NavBar from "@/components/NavBar";
 import { isAuthenticated } from "@/utils/amplify-utils";
-import { cookies } from "next/headers";
-import { getCurrentUser } from "aws-amplify/auth/server";
-import ConfigureAmplifyClientSide from "@/components/ConfigureAmplifyClientSide";
 
 const inter = Inter({ subsets: ["latin"] });
 
