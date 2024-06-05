@@ -1,27 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Divider, Flex } from "@aws-amplify/ui-react";
 import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
 import { Hub } from "aws-amplify/utils";
+import { fetchAuthSession } from "aws-amplify/auth";
 
-// interface Route {
-//   href: string;
-//   label: string;
-//   loggedIn?: boolean;
-// }
-
-export default function NavBar({
-  isSignedIn,
-  isAdmin,
-}: {
-  isSignedIn: boolean;
-  isAdmin: boolean;
-}) {
+export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
   const [authCheck, setAuthCheck] = useState<boolean>(isSignedIn);
-  const [adminCheck, setAdminCheck] = useState<boolean>(isAdmin);
+  const [adminCheck, setAdminCheck] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -44,6 +33,32 @@ export default function NavBar({
     };
   }, [router]);
 
+  useEffect(() => {
+    const checkAdmin = async () => {
+      let isAdmin = false;
+      try {
+        const session = await fetchAuthSession();
+        const tokens = session.tokens;
+        if (tokens && Object.keys(tokens).length > 0) {
+          const groups = tokens.accessToken.payload["cognito:groups"];
+          if (Array.isArray(groups) && groups.includes("Admins")) {
+            isAdmin = true;
+          }
+        }
+      } catch (error) {
+        isAdmin = false;
+      } finally {
+        setAdminCheck(isAdmin);
+      }
+    };
+
+    if (authCheck) {
+      checkAdmin();
+    } else {
+      setAdminCheck(false);
+    }
+  }, [authCheck]);
+
   const signOutSignIn = async () => {
     if (authCheck) {
       await signOut();
@@ -60,12 +75,12 @@ export default function NavBar({
     {
       href: "/create-product",
       label: "Add Product",
-      loggedIn: true,
+      isAdmin: true,
     },
   ];
 
   const routes = defaultRoutes.filter((route) => {
-    return route.loggedIn === authCheck || route.loggedIn === undefined;
+    return route.isAdmin === adminCheck || route.isAdmin === undefined;
   });
 
   return (
