@@ -5,6 +5,7 @@ import Auth from "@/components/auth/Auth";
 import NavBar from "@/components/NavBar";
 import {
   isAuthenticated,
+  isAdmin,
   runWithAmplifyServerContext,
 } from "@/utils/amplify-utils";
 import { cookies } from "next/headers";
@@ -26,7 +27,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <NavBar isSignedIn={await isAuthenticated()} />
+        <NavBar
+          isSignedIn={await isAuthenticated()}
+          isAdmin={await isAdmin()}
+        />
         <Auth>{children}</Auth>
       </body>
     </html>

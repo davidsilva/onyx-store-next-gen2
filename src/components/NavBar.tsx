@@ -6,11 +6,22 @@ import { Button, Divider, Flex } from "@aws-amplify/ui-react";
 import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
 import { Hub } from "aws-amplify/utils";
-// import { useTransition } from "react";
 
-export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
+// interface Route {
+//   href: string;
+//   label: string;
+//   loggedIn?: boolean;
+// }
+
+export default function NavBar({
+  isSignedIn,
+  isAdmin,
+}: {
+  isSignedIn: boolean;
+  isAdmin: boolean;
+}) {
   const [authCheck, setAuthCheck] = useState<boolean>(isSignedIn);
-  //   const [isPending, startTransition] = useTransition();
+  const [adminCheck, setAdminCheck] = useState<boolean>(isAdmin);
 
   const router = useRouter();
 
@@ -20,12 +31,10 @@ export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
         case "signedIn":
           setAuthCheck(true);
           router.push("/");
-          //   startTransition(() => router.refresh());
           break;
         case "signedOut":
           setAuthCheck(false);
           router.push("/");
-          //   startTransition(() => router.refresh());
           break;
       }
     });
@@ -73,6 +82,14 @@ export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
               {route.label}
             </Link>
           ))}
+        </Flex>
+        <Flex alignItems="center">
+          {adminCheck && (
+            <Link href="/admin">
+              <a>Admin</a>
+            </Link>
+          )}
+          /
         </Flex>
         <Button
           variation="primary"
