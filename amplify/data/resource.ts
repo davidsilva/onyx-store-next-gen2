@@ -12,7 +12,7 @@ const schema = a.schema({
       name: a.string().required(),
       description: a.string().required(),
       price: a.integer().required(),
-      image: a.string().required(),
+      image: a.string(),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
