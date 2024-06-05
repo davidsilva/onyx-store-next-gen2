@@ -49,6 +49,7 @@ export default function ProductUpdateForm(props) {
         ? (
             await client.graphql({
               query: getProduct.replaceAll("__typename", ""),
+              authMode: "userPool",
               variables: { id: idProp },
             })
           )?.data?.getProduct

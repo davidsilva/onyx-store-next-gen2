@@ -104,6 +104,7 @@ export default function ProductCreateForm(props) {
           });
           await client.graphql({
             query: createProduct.replaceAll("__typename", ""),
+            authMode: "userPool",
             variables: {
               input: {
                 ...modelFields,
