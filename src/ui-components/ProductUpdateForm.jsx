@@ -62,7 +62,7 @@ export default function ProductUpdateForm(props) {
     name: [{ type: "Required" }],
     description: [{ type: "Required" }],
     price: [{ type: "Required" }],
-    image: [{ type: "Required" }],
+    image: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -93,7 +93,7 @@ export default function ProductUpdateForm(props) {
           name,
           description,
           price,
-          image,
+          image: image ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -232,7 +232,7 @@ export default function ProductUpdateForm(props) {
       ></TextField>
       <TextField
         label="Image"
-        isRequired={true}
+        isRequired={false}
         isReadOnly={false}
         value={image}
         onChange={(e) => {

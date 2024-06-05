@@ -41,7 +41,7 @@ export default function ProductCreateForm(props) {
     name: [{ type: "Required" }],
     description: [{ type: "Required" }],
     price: [{ type: "Required" }],
-    image: [{ type: "Required" }],
+    image: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -213,7 +213,7 @@ export default function ProductCreateForm(props) {
       ></TextField>
       <TextField
         label="Image"
-        isRequired={true}
+        isRequired={false}
         isReadOnly={false}
         value={image}
         onChange={(e) => {
