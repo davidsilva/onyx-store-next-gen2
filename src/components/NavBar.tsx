@@ -84,12 +84,7 @@ export default function NavBar({
           ))}
         </Flex>
         <Flex alignItems="center">
-          {adminCheck && (
-            <Link href="/admin">
-              <a>Admin</a>
-            </Link>
-          )}
-          /
+          {adminCheck && <Link href="/admin">Admin</Link>}
         </Flex>
         <Button
           variation="primary"
