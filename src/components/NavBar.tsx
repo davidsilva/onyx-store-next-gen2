@@ -1,37 +1,25 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Divider, Flex } from "@aws-amplify/ui-react";
 import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
-import { Hub } from "aws-amplify/utils";
 import { fetchAuthSession } from "aws-amplify/auth";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 
-export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
-  const [authCheck, setAuthCheck] = useState<boolean>(isSignedIn);
+export default function NavBar() {
+  const { authStatus } = useAuthenticator();
+  const [authCheck, setAuthCheck] = useState<boolean>(false);
   const [adminCheck, setAdminCheck] = useState<boolean>(false);
 
-  const router = useRouter();
-
   useEffect(() => {
-    const hubListenerCancel = Hub.listen("auth", (data) => {
-      switch (data.payload.event) {
-        case "signedIn":
-          setAuthCheck(true);
-          router.push("/");
-          break;
-        case "signedOut":
-          setAuthCheck(false);
-          router.push("/");
-          break;
-      }
-    });
+    if (authStatus !== "configuring") {
+      setAuthCheck(authStatus === "authenticated");
+    }
+  }, [authStatus]);
 
-    return () => {
-      hubListenerCancel();
-    };
-  }, [router]);
+  const router = useRouter();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -73,7 +61,7 @@ export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
       label: "Home",
     },
     {
-      href: "/product-create",
+      href: "/admin/product-create",
       label: "Add Product",
       isAdmin: true,
     },
@@ -97,9 +85,6 @@ export default function NavBar({ isSignedIn }: { isSignedIn: boolean }) {
               {route.label}
             </Link>
           ))}
-        </Flex>
-        <Flex alignItems="center">
-          {adminCheck && <Link href="/admin">Admin</Link>}
         </Flex>
         <Button
           variation="primary"
