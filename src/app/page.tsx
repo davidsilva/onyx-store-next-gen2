@@ -1,8 +1,13 @@
 import { cookieBasedClient } from "@/utils/amplify-utils";
+import { isAuthenticated } from "@/utils/amplify-utils";
+import ProductItem from "@/components/ProductItem";
 
 export default async function Home() {
+  const isSignedIn = await isAuthenticated();
   const { data: products, errors } =
-    await cookieBasedClient.models.Product.list();
+    await cookieBasedClient.models.Product.list({
+      authMode: isSignedIn ? "userPool" : "iam",
+    });
 
   console.log("products", products);
 
@@ -10,7 +15,7 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <h1>Hello, world!</h1>
       {products?.map((product) => (
-        <div key={product.id}>{product.name}</div>
+        <ProductItem key={product.id} product={product} />
       ))}
     </main>
   );
