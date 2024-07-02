@@ -20,7 +20,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Auth>
-          <NavBar className="p-10 bg-gray-500" />
+          <NavBar className="p-2 bg-gray-800 text-white" />
           {children}
         </Auth>
       </body>
