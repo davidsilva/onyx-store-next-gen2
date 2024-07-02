@@ -6,6 +6,10 @@ import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { getProduct } from "./graphql/queries";
 import { updateProduct } from "./graphql/mutations";
+import { processFile } from "./utils";
+import { StorageManager } from "@aws-amplify/ui-react-storage";
+import { StorageImage } from "@aws-amplify/ui-react-storage";
+
 const client = generateClient();
 export default function ProductUpdateForm(props) {
   const {
@@ -232,7 +236,7 @@ export default function ProductUpdateForm(props) {
         hasError={errors.price?.hasError}
         {...getOverrideProps(overrides, "price")}
       ></TextField>
-      <TextField
+      {/* <TextField
         label="Image"
         isRequired={false}
         isReadOnly={false}
@@ -258,7 +262,29 @@ export default function ProductUpdateForm(props) {
         errorMessage={errors.image?.errorMessage}
         hasError={errors.image?.hasError}
         {...getOverrideProps(overrides, "image")}
-      ></TextField>
+      ></TextField> */}
+
+      {image && <StorageImage path={image} alt={name} />}
+
+      {image && (
+        <Button onClick={() => setImage(undefined)}>Remove Image</Button>
+      )}
+
+      <StorageManager
+        path="product-images/"
+        defaultFiles={image ? [{ s3key: image }] : []}
+        maxFileCount={1}
+        acceptedFileTypes={["image/*"]}
+        processFile={processFile}
+        onUploadSuccess={({ key }) => {
+          console.log("onUploadSuccess", key);
+          setImage(key);
+        }}
+        onFileRemove={({ key }) => {
+          setImage(undefined);
+        }}
+      />
+
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

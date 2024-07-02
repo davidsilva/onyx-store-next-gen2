@@ -5,6 +5,9 @@ import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { createProduct } from "./graphql/mutations";
+import { processFile } from "./utils";
+import { StorageManager } from "@aws-amplify/ui-react-storage";
+
 const client = generateClient();
 export default function ProductCreateForm(props) {
   const {
@@ -212,7 +215,7 @@ export default function ProductCreateForm(props) {
         hasError={errors.price?.hasError}
         {...getOverrideProps(overrides, "price")}
       ></TextField>
-      <TextField
+      {/* <TextField
         label="Image"
         isRequired={false}
         isReadOnly={false}
@@ -238,7 +241,22 @@ export default function ProductCreateForm(props) {
         errorMessage={errors.image?.errorMessage}
         hasError={errors.image?.hasError}
         {...getOverrideProps(overrides, "image")}
-      ></TextField>
+      ></TextField> */}
+
+      <StorageManager
+        path="product-images/"
+        maxFileCount={1}
+        acceptedFileTypes={["image/*"]}
+        processFile={processFile}
+        onUploadSuccess={({ key }) => {
+          console.log("onUploadSuccess", key);
+          setImage(key);
+        }}
+        onFileRemove={({ key }) => {
+          setImage(undefined);
+        }}
+      />
+
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}
