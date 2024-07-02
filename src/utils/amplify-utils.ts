@@ -9,7 +9,7 @@ export const { runWithAmplifyServerContext } = createServerRunner({
   config: outputs,
 });
 
-export const isAuthenticated = async (): Promise<boolean> => {
+export const checkIsAuthenticated = async (): Promise<boolean> => {
   return await runWithAmplifyServerContext({
     nextServerContext: { cookies },
     async operation(contextSpec) {
@@ -23,7 +23,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
   });
 };
 
-export const isAdmin = async (): Promise<boolean> => {
+export const checkIsAdmin = async (): Promise<boolean> => {
   return await runWithAmplifyServerContext({
     nextServerContext: { cookies },
     async operation(contextSpec) {
