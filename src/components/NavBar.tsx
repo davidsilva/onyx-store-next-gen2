@@ -8,7 +8,11 @@ import { useRouter } from "next/navigation";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 
-export default function NavBar() {
+interface NavBarProps {
+  className?: string;
+}
+
+export default function NavBar({ className }: NavBarProps) {
   const { authStatus } = useAuthenticator();
   const [authCheck, setAuthCheck] = useState<boolean>(false);
   const [adminCheck, setAdminCheck] = useState<boolean>(false);
@@ -72,7 +76,7 @@ export default function NavBar() {
   });
 
   return (
-    <>
+    <div className={className}>
       <Flex
         direction="row"
         justifyContent="space-between"
@@ -96,6 +100,6 @@ export default function NavBar() {
         </Button>
       </Flex>
       <Divider size="small"></Divider>
-    </>
+    </div>
   );
 }
