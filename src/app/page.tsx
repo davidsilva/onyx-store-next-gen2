@@ -16,7 +16,7 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <h1>Hello, world!</h1>
       {products?.map((product) => (
-        <ProductItem key={product.id} product={product} id={product.id} />
+        <ProductItem key={product.id} product={product} />
       ))}
     </main>
   );
