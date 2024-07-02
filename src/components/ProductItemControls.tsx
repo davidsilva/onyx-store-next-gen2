@@ -4,10 +4,15 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { generateClient } from "aws-amplify/api";
+import { type Schema } from "@/../amplify/data/resource";
+import clearCachesByServerAction from "@/actions/revalidate";
 
 interface ProductItemControlsProps {
   id: string;
 }
+
+const client = generateClient<Schema>();
 
 const ProductItemControls = ({ id }: ProductItemControlsProps) => {
   const { authStatus } = useAuthenticator((context) => [context.authStatus]);
@@ -19,6 +24,19 @@ const ProductItemControls = ({ id }: ProductItemControlsProps) => {
 
   const handleEdit = () => {
     router.push(`/admin/product-edit/${id}`);
+  };
+
+  const handleDelete = async () => {
+    try {
+      const result = await client.models.Product.delete(
+        { id },
+        { authMode: "userPool" }
+      );
+      console.log("Deleted product", result);
+      clearCachesByServerAction();
+    } catch (error) {
+      console.error("Error deleting product", error);
+    }
   };
 
   useEffect(() => {
@@ -62,7 +80,9 @@ const ProductItemControls = ({ id }: ProductItemControlsProps) => {
             <button className="btn btn-blue" onClick={handleEdit}>
               Edit
             </button>
-            <button className="btn btn-blue">Delete</button>
+            <button className="btn btn-blue" onClick={handleDelete}>
+              Delete
+            </button>
           </>
         )}
       </div>
