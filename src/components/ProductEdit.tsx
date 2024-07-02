@@ -5,6 +5,7 @@ import ProductUpdateForm, {
 } from "@/ui-components/ProductUpdateForm";
 import { Card, Alert } from "@aws-amplify/ui-react";
 import { useState } from "react";
+import clearCachesByServerAction from "@/actions/revalidate";
 
 interface ProductUpdateProps {
   id: string;
@@ -18,6 +19,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
     console.log("Product updated successfully.");
     setIsSuccess(true);
     setIsError(false);
+    clearCachesByServerAction();
   };
 
   const handleError = () => {
