@@ -13,7 +13,7 @@ interface NavBarProps {
 }
 
 export default function NavBar({ className }: NavBarProps) {
-  const { authStatus } = useAuthenticator();
+  const { authStatus } = useAuthenticator((context) => [context.authStatus]);
   const [authCheck, setAuthCheck] = useState<boolean>(false);
   const [adminCheck, setAdminCheck] = useState<boolean>(false);
 
