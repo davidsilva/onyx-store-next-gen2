@@ -126,6 +126,7 @@ export default function ProductUpdateForm(props) {
           });
           await client.graphql({
             query: updateProduct.replaceAll("__typename", ""),
+            authMode: "userPool",
             variables: {
               input: {
                 id: productRecord.id,
