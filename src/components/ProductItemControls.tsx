@@ -55,15 +55,15 @@ const ProductItemControls = ({ id }: ProductItemControlsProps) => {
 
   if (isSignedIn) {
     return (
-      <div>
+      <div className="flex gap-2">
         <button className="btn btn-blue">Add Review</button>
         {isAdmin && (
-          <div>
+          <>
             <button className="btn btn-blue" onClick={handleEdit}>
               Edit
             </button>
             <button className="btn btn-blue">Delete</button>
-          </div>
+          </>
         )}
       </div>
     );
