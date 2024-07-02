@@ -62,7 +62,7 @@ export default function NavBar({ className }: NavBarProps) {
   const defaultRoutes = [
     {
       href: "/",
-      label: "Home",
+      label: "Onyx Store",
     },
     {
       href: "/admin/product-create",
@@ -99,7 +99,6 @@ export default function NavBar({ className }: NavBarProps) {
           {authCheck ? "Sign Out" : "Sign In"}
         </Button>
       </Flex>
-      <Divider size="small"></Divider>
     </div>
   );
 }
