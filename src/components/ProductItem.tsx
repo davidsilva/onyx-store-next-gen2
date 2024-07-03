@@ -5,9 +5,10 @@ import ImageComponent from "@/components/Image";
 type Product = Schema["Product"]["type"];
 interface ProductItemProps {
   product: Product;
+  isSignedIn: boolean;
 }
 
-const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
+const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
   return (
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
       {product.image && (
@@ -18,7 +19,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
       <div>
         <h2 className="text-xl font-bold">{product.name}</h2>
         <div>{product.description}</div>
-        <ProductItemControls id={product.id} />
+        {isSignedIn && <ProductItemControls id={product.id} />}
       </div>
     </div>
   );
