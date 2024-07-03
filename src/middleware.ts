@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
 
   const isAdmin = await checkIsAdmin();
 
-  console.log("isAdmin", isAdmin);
+  // console.log("isAdmin", isAdmin);
 
   if (isAdmin) {
     return response;

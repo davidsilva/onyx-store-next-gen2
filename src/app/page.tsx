@@ -9,7 +9,7 @@ export default async function Home() {
       authMode: isSignedIn ? "userPool" : "iam",
     });
 
-  console.log("products", products);
+  // console.log("products", products);
 
   return (
     <main className="flex min-h-screen flex-col justify-between p-24">
