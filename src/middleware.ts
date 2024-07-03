@@ -3,39 +3,20 @@ If user tries to access the /admin path he must be authenticated and an admin.
 */
 import { NextRequest, NextResponse } from "next/server";
 
-import { fetchAuthSession } from "aws-amplify/auth/server";
-
-import { runWithAmplifyServerContext } from "@/utils/amplify-utils";
+import { checkIsAdmin } from "@/utils/amplify-utils";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
-  const isAdmin = await runWithAmplifyServerContext({
-    nextServerContext: { request, response },
-    operation: async (contextSpec) => {
-      try {
-        const session = await fetchAuthSession(contextSpec, {});
-        const tokens = session.tokens;
-        if (tokens && Object.keys(tokens).length > 0) {
-          const groups = tokens.accessToken.payload["cognito:groups"];
-          if (Array.isArray(groups) && groups.includes("Admins")) {
-            return true;
-          }
-        }
-
-        return false;
-      } catch (error) {
-        console.log(error);
-        return false;
-      }
-    },
-  });
+  const isAdmin = await checkIsAdmin();
 
   console.log("isAdmin", isAdmin);
 
   if (isAdmin) {
     return response;
   }
+
+  console.log("request.url", request.url);
 
   return NextResponse.redirect(new URL("/signin", request.url));
 }
