@@ -1,4 +1,4 @@
-import AuthClient from "../../components/auth/AuthClient";
+import AuthClient from "../../components/AuthenticatorClient";
 
 const SignIn = () => {
   return <AuthClient />;
