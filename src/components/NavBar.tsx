@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Button, Divider, Flex } from "@aws-amplify/ui-react";
 import { signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
-import { fetchAuthSession } from "aws-amplify/auth";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import { useAdminContext } from "@/context/AdminContext";
 
 interface NavBarProps {
   className?: string;
@@ -14,45 +14,19 @@ interface NavBarProps {
 
 export default function NavBar({ className }: NavBarProps) {
   const { authStatus } = useAuthenticator((context) => [context.authStatus]);
-  const [authCheck, setAuthCheck] = useState<boolean>(false);
-  const [adminCheck, setAdminCheck] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const { isAdmin } = useAdminContext();
 
   useEffect(() => {
     if (authStatus !== "configuring") {
-      setAuthCheck(authStatus === "authenticated");
+      setIsAuthenticated(authStatus === "authenticated");
     }
   }, [authStatus]);
 
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      let isAdmin = false;
-      try {
-        const session = await fetchAuthSession();
-        const tokens = session.tokens;
-        if (tokens && Object.keys(tokens).length > 0) {
-          const groups = tokens.accessToken.payload["cognito:groups"];
-          if (Array.isArray(groups) && groups.includes("Admins")) {
-            isAdmin = true;
-          }
-        }
-      } catch (error) {
-        isAdmin = false;
-      } finally {
-        setAdminCheck(isAdmin);
-      }
-    };
-
-    if (authCheck) {
-      checkAdmin();
-    } else {
-      setAdminCheck(false);
-    }
-  }, [authCheck]);
-
   const signOutSignIn = async () => {
-    if (authCheck) {
+    if (isAuthenticated) {
       await signOut();
     } else {
       router.push("/signin");
@@ -72,7 +46,7 @@ export default function NavBar({ className }: NavBarProps) {
   ];
 
   const routes = defaultRoutes.filter((route) => {
-    return route.isAdmin === adminCheck || route.isAdmin === undefined;
+    return route.isAdmin === isAdmin || route.isAdmin === undefined;
   });
 
   return (
@@ -96,7 +70,7 @@ export default function NavBar({ className }: NavBarProps) {
           className="mr-4"
           onClick={signOutSignIn}
         >
-          {authCheck ? "Sign Out" : "Sign In"}
+          {isAuthenticated ? "Sign Out" : "Sign In"}
         </Button>
       </Flex>
     </div>
