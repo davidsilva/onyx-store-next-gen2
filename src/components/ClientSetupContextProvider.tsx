@@ -8,11 +8,15 @@ import { AdminContextProvider } from "@/context/AdminContext";
 
 Amplify.configure(outputs, { ssr: true });
 
-const Auth = ({ children }: { children: React.ReactNode }) => {
+const ClientSetupContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   return (
     <Authenticator.Provider>
       <AdminContextProvider>{children}</AdminContextProvider>
     </Authenticator.Provider>
   );
 };
-export default Auth;
+export default ClientSetupContextProvider;
