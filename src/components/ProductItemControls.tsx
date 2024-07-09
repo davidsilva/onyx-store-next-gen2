@@ -8,11 +8,12 @@ import { useAdminContext } from "@/context/AdminContext";
 
 interface ProductItemControlsProps {
   id: string;
+  isSignedIn: boolean;
 }
 
 const client = generateClient<Schema>();
 
-const ProductItemControls = ({ id }: ProductItemControlsProps) => {
+const ProductItemControls = ({ id, isSignedIn }: ProductItemControlsProps) => {
   const { isAdmin } = useAdminContext();
 
   const router = useRouter();
@@ -36,7 +37,8 @@ const ProductItemControls = ({ id }: ProductItemControlsProps) => {
 
   return (
     <div className="flex gap-2">
-      <button className="btn btn-blue">Add Review</button>
+      <button className="btn btn-blue">Add to Cart</button>
+      {isSignedIn && <button className="btn btn-blue">Add Review</button>}
       {isAdmin && (
         <>
           <button className="btn btn-blue" onClick={handleEdit}>
