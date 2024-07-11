@@ -13,8 +13,7 @@ import { generateClient } from "aws-amplify/api";
 import { getProduct } from "./graphql/queries";
 import { updateProduct } from "./graphql/mutations";
 import { processFile } from "./utils";
-import { StorageManager } from "@aws-amplify/ui-react-storage";
-import { StorageImage } from "@aws-amplify/ui-react-storage";
+import { StorageManager, StorageImage } from "@aws-amplify/ui-react-storage";
 
 const client = generateClient();
 export default function ProductUpdateForm(props) {

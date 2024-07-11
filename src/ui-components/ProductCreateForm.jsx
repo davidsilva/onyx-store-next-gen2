@@ -12,7 +12,7 @@ import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { createProduct } from "./graphql/mutations";
 import { processFile } from "./utils";
-import { StorageManager } from "@aws-amplify/ui-react-storage";
+import { StorageManager, StorageImage } from "@aws-amplify/ui-react-storage";
 
 const client = generateClient();
 export default function ProductCreateForm(props) {
@@ -249,6 +249,12 @@ export default function ProductCreateForm(props) {
         hasError={errors.image?.hasError}
         {...getOverrideProps(overrides, "image")}
       ></TextField> */}
+
+      {image && <StorageImage path={image} alt={name} />}
+
+      {image && (
+        <Button onClick={() => setImage(undefined)}>Remove Image</Button>
+      )}
 
       <StorageManager
         path="product-images/"
