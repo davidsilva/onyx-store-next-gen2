@@ -10,8 +10,6 @@ export async function middleware(request: NextRequest) {
 
   const isAdmin = await checkIsAdmin();
 
-  // console.log("isAdmin", isAdmin);
-
   if (isAdmin) {
     return response;
   }
@@ -20,15 +18,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - login
-     */
-    "/admin(/.*)?",
-  ],
+  matcher: ["/admin(/.*)?"],
 };
