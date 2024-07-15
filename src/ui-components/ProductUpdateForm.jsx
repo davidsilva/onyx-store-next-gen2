@@ -278,7 +278,6 @@ export default function ProductUpdateForm(props) {
 
       <StorageManager
         path="product-images/"
-        defaultFiles={image ? [{ s3key: image }] : []}
         maxFileCount={1}
         acceptedFileTypes={["image/*"]}
         processFile={processFile}
