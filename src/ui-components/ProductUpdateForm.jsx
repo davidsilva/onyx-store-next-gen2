@@ -1,20 +1,11 @@
 /* eslint-disable */
 "use client";
 import * as React from "react";
-import {
-  Button,
-  Flex,
-  Grid,
-  TextField,
-  TextAreaField,
-} from "@aws-amplify/ui-react";
+import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { getProduct } from "./graphql/queries";
 import { updateProduct } from "./graphql/mutations";
-import { processFile } from "./utils";
-import { StorageManager, StorageImage } from "@aws-amplify/ui-react-storage";
-
 const client = generateClient();
 export default function ProductUpdateForm(props) {
   const {
@@ -32,14 +23,12 @@ export default function ProductUpdateForm(props) {
     name: "",
     description: "",
     price: "",
-    image: "",
   };
   const [name, setName] = React.useState(initialValues.name);
   const [description, setDescription] = React.useState(
     initialValues.description
   );
   const [price, setPrice] = React.useState(initialValues.price);
-  const [image, setImage] = React.useState(initialValues.image);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = productRecord
@@ -48,7 +37,6 @@ export default function ProductUpdateForm(props) {
     setName(cleanValues.name);
     setDescription(cleanValues.description);
     setPrice(cleanValues.price);
-    setImage(cleanValues.image);
     setErrors({});
   };
   const [productRecord, setProductRecord] = React.useState(productModelProp);
@@ -58,7 +46,6 @@ export default function ProductUpdateForm(props) {
         ? (
             await client.graphql({
               query: getProduct.replaceAll("__typename", ""),
-              authMode: "userPool",
               variables: { id: idProp },
             })
           )?.data?.getProduct
@@ -72,7 +59,6 @@ export default function ProductUpdateForm(props) {
     name: [{ type: "Required" }],
     description: [{ type: "Required" }],
     price: [{ type: "Required" }],
-    image: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -103,7 +89,6 @@ export default function ProductUpdateForm(props) {
           name,
           description,
           price,
-          image: image ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -135,7 +120,6 @@ export default function ProductUpdateForm(props) {
           });
           await client.graphql({
             query: updateProduct.replaceAll("__typename", ""),
-            authMode: "userPool",
             variables: {
               input: {
                 id: productRecord.id,
@@ -168,7 +152,6 @@ export default function ProductUpdateForm(props) {
               name: value,
               description,
               price,
-              image,
             };
             const result = onChange(modelFields);
             value = result?.name ?? value;
@@ -183,7 +166,7 @@ export default function ProductUpdateForm(props) {
         hasError={errors.name?.hasError}
         {...getOverrideProps(overrides, "name")}
       ></TextField>
-      <TextAreaField
+      <TextField
         label="Description"
         isRequired={true}
         isReadOnly={false}
@@ -195,7 +178,6 @@ export default function ProductUpdateForm(props) {
               name,
               description: value,
               price,
-              image,
             };
             const result = onChange(modelFields);
             value = result?.description ?? value;
@@ -208,9 +190,8 @@ export default function ProductUpdateForm(props) {
         onBlur={() => runValidationTasks("description", description)}
         errorMessage={errors.description?.errorMessage}
         hasError={errors.description?.hasError}
-        row={3}
         {...getOverrideProps(overrides, "description")}
-      ></TextAreaField>
+      ></TextField>
       <TextField
         label="Price"
         isRequired={true}
@@ -227,7 +208,6 @@ export default function ProductUpdateForm(props) {
               name,
               description,
               price: value,
-              image,
             };
             const result = onChange(modelFields);
             value = result?.price ?? value;
@@ -242,54 +222,6 @@ export default function ProductUpdateForm(props) {
         hasError={errors.price?.hasError}
         {...getOverrideProps(overrides, "price")}
       ></TextField>
-      {/* <TextField
-        label="Image"
-        isRequired={false}
-        isReadOnly={false}
-        value={image}
-        onChange={(e) => {
-          let { value } = e.target;
-          if (onChange) {
-            const modelFields = {
-              name,
-              description,
-              price,
-              image: value,
-            };
-            const result = onChange(modelFields);
-            value = result?.image ?? value;
-          }
-          if (errors.image?.hasError) {
-            runValidationTasks("image", value);
-          }
-          setImage(value);
-        }}
-        onBlur={() => runValidationTasks("image", image)}
-        errorMessage={errors.image?.errorMessage}
-        hasError={errors.image?.hasError}
-        {...getOverrideProps(overrides, "image")}
-      ></TextField> */}
-
-      {image && <StorageImage path={image} alt={name} />}
-
-      {image && (
-        <Button onClick={() => setImage(undefined)}>Remove Image</Button>
-      )}
-
-      <StorageManager
-        path="product-images/"
-        maxFileCount={1}
-        acceptedFileTypes={["image/*"]}
-        processFile={processFile}
-        onUploadSuccess={({ key }) => {
-          console.log("onUploadSuccess", key);
-          setImage(key);
-        }}
-        onFileRemove={({ key }) => {
-          setImage(undefined);
-        }}
-      />
-
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

@@ -4,9 +4,9 @@ import * as React from "react";
 import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
-import { createProduct } from "./graphql/mutations";
+import { createImage } from "./graphql/mutations";
 const client = generateClient();
-export default function ProductCreateForm(props) {
+export default function ImageCreateForm(props) {
   const {
     clearOnSuccess = true,
     onSuccess,
@@ -18,26 +18,20 @@ export default function ProductCreateForm(props) {
     ...rest
   } = props;
   const initialValues = {
-    name: "",
-    description: "",
-    price: "",
+    key: "",
+    alt: "",
   };
-  const [name, setName] = React.useState(initialValues.name);
-  const [description, setDescription] = React.useState(
-    initialValues.description
-  );
-  const [price, setPrice] = React.useState(initialValues.price);
+  const [key, setKey] = React.useState(initialValues.key);
+  const [alt, setAlt] = React.useState(initialValues.alt);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setName(initialValues.name);
-    setDescription(initialValues.description);
-    setPrice(initialValues.price);
+    setKey(initialValues.key);
+    setAlt(initialValues.alt);
     setErrors({});
   };
   const validations = {
-    name: [{ type: "Required" }],
-    description: [{ type: "Required" }],
-    price: [{ type: "Required" }],
+    key: [{ type: "Required" }],
+    alt: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -65,9 +59,8 @@ export default function ProductCreateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          name,
-          description,
-          price,
+          key,
+          alt,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -98,7 +91,7 @@ export default function ProductCreateForm(props) {
             }
           });
           await client.graphql({
-            query: createProduct.replaceAll("__typename", ""),
+            query: createImage.replaceAll("__typename", ""),
             variables: {
               input: {
                 ...modelFields,
@@ -118,90 +111,58 @@ export default function ProductCreateForm(props) {
           }
         }
       }}
-      {...getOverrideProps(overrides, "ProductCreateForm")}
+      {...getOverrideProps(overrides, "ImageCreateForm")}
       {...rest}
     >
       <TextField
-        label="Name"
+        label="Key"
         isRequired={true}
         isReadOnly={false}
-        value={name}
+        value={key}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              name: value,
-              description,
-              price,
+              key: value,
+              alt,
             };
             const result = onChange(modelFields);
-            value = result?.name ?? value;
+            value = result?.key ?? value;
           }
-          if (errors.name?.hasError) {
-            runValidationTasks("name", value);
+          if (errors.key?.hasError) {
+            runValidationTasks("key", value);
           }
-          setName(value);
+          setKey(value);
         }}
-        onBlur={() => runValidationTasks("name", name)}
-        errorMessage={errors.name?.errorMessage}
-        hasError={errors.name?.hasError}
-        {...getOverrideProps(overrides, "name")}
+        onBlur={() => runValidationTasks("key", key)}
+        errorMessage={errors.key?.errorMessage}
+        hasError={errors.key?.hasError}
+        {...getOverrideProps(overrides, "key")}
       ></TextField>
       <TextField
-        label="Description"
-        isRequired={true}
+        label="Alt"
+        isRequired={false}
         isReadOnly={false}
-        value={description}
+        value={alt}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              name,
-              description: value,
-              price,
+              key,
+              alt: value,
             };
             const result = onChange(modelFields);
-            value = result?.description ?? value;
+            value = result?.alt ?? value;
           }
-          if (errors.description?.hasError) {
-            runValidationTasks("description", value);
+          if (errors.alt?.hasError) {
+            runValidationTasks("alt", value);
           }
-          setDescription(value);
+          setAlt(value);
         }}
-        onBlur={() => runValidationTasks("description", description)}
-        errorMessage={errors.description?.errorMessage}
-        hasError={errors.description?.hasError}
-        {...getOverrideProps(overrides, "description")}
-      ></TextField>
-      <TextField
-        label="Price"
-        isRequired={true}
-        isReadOnly={false}
-        type="number"
-        step="any"
-        value={price}
-        onChange={(e) => {
-          let value = isNaN(parseInt(e.target.value))
-            ? e.target.value
-            : parseInt(e.target.value);
-          if (onChange) {
-            const modelFields = {
-              name,
-              description,
-              price: value,
-            };
-            const result = onChange(modelFields);
-            value = result?.price ?? value;
-          }
-          if (errors.price?.hasError) {
-            runValidationTasks("price", value);
-          }
-          setPrice(value);
-        }}
-        onBlur={() => runValidationTasks("price", price)}
-        errorMessage={errors.price?.errorMessage}
-        hasError={errors.price?.hasError}
-        {...getOverrideProps(overrides, "price")}
+        onBlur={() => runValidationTasks("alt", alt)}
+        errorMessage={errors.alt?.errorMessage}
+        hasError={errors.alt?.hasError}
+        {...getOverrideProps(overrides, "alt")}
       ></TextField>
       <Flex
         justifyContent="space-between"
