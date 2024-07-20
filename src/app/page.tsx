@@ -7,9 +7,10 @@ export default async function Home() {
   const { data: products, errors } =
     await cookieBasedClient.models.Product.list({
       authMode: isSignedIn ? "userPool" : "iam",
+      selectionSet: ["id", "name", "description", "price", "images.*"],
     });
 
-  // console.log("products", products);
+  console.log("products", products);
 
   return (
     <main className="flex min-h-screen flex-col justify-between p-24">
