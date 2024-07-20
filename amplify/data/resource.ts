@@ -6,7 +6,7 @@ const schema = a.schema({
       name: a.string().required(),
       description: a.string().required(),
       price: a.integer().required(),
-      images: a.hasMany("Image", "productId"),
+      images: a.hasMany("ProductImage", "productId"),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
@@ -14,7 +14,7 @@ const schema = a.schema({
       allow.group("Admins"),
     ]),
 
-  Image: a
+  ProductImage: a
     .model({
       key: a.string().required(),
       alt: a.string(),
