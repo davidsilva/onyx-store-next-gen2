@@ -20,7 +20,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ClientSetupContextProvider>
-          <NavBar className="p-2 bg-gray-800 text-white" />
+          <NavBar className="p-2 bg-gray-800 text-white sticky top-0 z-50" />
           {children}
         </ClientSetupContextProvider>
       </body>
