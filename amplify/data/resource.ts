@@ -5,7 +5,7 @@ const schema = a.schema({
     .model({
       name: a.string().required(),
       description: a.string().required(),
-      price: a.integer().required(),
+      price: a.integer().required(), // In cents to avoid precision, rounding issues
       images: a.hasMany("ProductImage", "productId"),
     })
     .authorization((allow) => [
