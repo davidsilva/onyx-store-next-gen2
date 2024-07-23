@@ -12,7 +12,7 @@ import { generateClient } from "@aws-amplify/api";
 import {
   Card,
   Alert,
-  Input,
+  Text,
   TextField,
   TextAreaField,
   Button,
@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
+import clearCachesByServerAction from "@/actions/revalidate";
 
 type FormData = {
   name: string;
@@ -28,8 +29,17 @@ type FormData = {
 };
 
 type Image = {
+  id?: string;
   key: string;
-  alt?: string;
+  alt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  productId?: string | null;
+};
+
+type Message = {
+  type: "error" | "success";
+  content: string;
 };
 
 const client = generateClient<Schema>({
@@ -38,6 +48,7 @@ const client = generateClient<Schema>({
 
 const ProductCreate = () => {
   const [images, setImages] = useState<Image[]>([]);
+  const [message, setMessage] = useState<Message | null>(null);
   const { register, handleSubmit, formState } = useForm<FormData>({
     defaultValues: {
       name: "",
@@ -47,80 +58,104 @@ const ProductCreate = () => {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    // Only called if form validation passes, i.e., formState.isValid is true
+    // Only called if form validation passes.
     console.log("form data", data);
 
-    const result = await client.models.Product.create({
-      name: data.name,
-      description: data.description,
-      price: parseInt(data.price, 10),
-    });
+    try {
+      const result = await client.models.Product.create({
+        name: data.name,
+        description: data.description,
+        price: parseInt(data.price, 10) * 100, // convert to cents
+      });
 
-    console.log("result", result);
+      console.log("result", result);
 
-    const productId = result.data?.id;
+      const productId = result.data?.id;
 
-    if (productId) {
-      for (const image of images) {
-        await client.models.ProductImage.create({
-          key: image.key,
-          alt: image.alt,
-          productId,
+      if (productId) {
+        for (const image of images) {
+          await client.models.ProductImage.create({
+            key: image.key,
+            alt: image.alt,
+            productId,
+          });
+        }
+
+        const checkProduct = await client.models.Product.get(
+          { id: productId },
+          { selectionSet: ["id", "name", "description", "price", "images.*"] }
+        );
+        console.log("checkProduct", checkProduct);
+        setMessage({
+          type: "success",
+          content: "Product created successfully.",
         });
-      }
 
-      const checkProduct = await client.models.Product.get(
-        { id: productId },
-        { selectionSet: ["id", "name", "description", "price", "images.*"] }
-      );
-      console.log("checkProduct", checkProduct);
+        clearCachesByServerAction();
+      }
+    } catch (error) {
+      console.error("error", error);
+      setMessage({
+        type: "error",
+        content: "An error occurred. Please try again.",
+      });
     }
   });
 
   return (
     <Card>
-      <form onSubmit={onSubmit}>
-        <div>
-          <TextField
-            label="Name"
-            {...register("name", { required: "A name is required." })}
-          />
-          <p>{formState.errors.name?.message}</p>
-        </div>
-        <div>
-          <TextAreaField
-            label="Description"
-            {...register("description", {
-              required: "A description is required.",
-            })}
-          />
-          <p>{formState.errors.description?.message}</p>
-        </div>
-        <div>
-          <TextField
-            type="number"
-            label="Price"
-            {...register("price", {
-              required: "A price is required.",
-              min: { value: 0, message: "Price must be greater than 0" },
-            })}
-          />
-          <p>{formState.errors.price?.message}</p>
-        </div>
-        {images.length > 0 && (
-          <ol>
-            {images.map((image, idx) => (
-              <li key={idx}>{image.key}</li>
-            ))}
-          </ol>
-        )}
-        <div>
-          <ImageUploader setImages={setImages} images={images} />
-        </div>
-        <div>
-          <Button type="submit">Create Product</Button>
-        </div>
-      </form>
+      {message ? (
+        <Alert variation={message.type}>{message.content}</Alert>
+      ) : (
+        <>
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            Create Product
+          </h1>
+          <form onSubmit={onSubmit}>
+            <div>
+              <TextField
+                label={<Text fontWeight={600}>Name</Text>}
+                hasError={!!formState.errors.name}
+                errorMessage={formState.errors.name?.message}
+                {...register("name", { required: "A name is required." })}
+              />
+            </div>
+            <div>
+              <TextAreaField
+                label={<Text fontWeight={600}>Description</Text>}
+                hasError={!!formState.errors.description}
+                errorMessage={formState.errors.description?.message}
+                {...register("description", {
+                  required: "A description is required.",
+                })}
+              />
+            </div>
+            <div>
+              <TextField
+                type="text"
+                label={<Text fontWeight={600}>Price</Text>}
+                hasError={!!formState.errors.price}
+                errorMessage={formState.errors.price?.message}
+                {...register("price", {
+                  required: "A price is required.",
+                  pattern: {
+                    value: /^\d+(\.\d{0,2})?$/,
+                    message:
+                      "Price must be a number with up to two decimal places.",
+                  },
+                })}
+              />
+            </div>
+            <div>
+              <Text fontWeight={600}>Images</Text>
+              <ImageUploader setImages={setImages} images={images} />
+            </div>
+            <div>
+              <Button type="submit">Create Product</Button>
+            </div>
+          </form>
+        </>
+      )}
     </Card>
   );
 };
