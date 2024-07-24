@@ -21,6 +21,7 @@ const schema = a.schema({
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
     })
+    .secondaryIndexes((index) => [index("productId")])
     .authorization((allow) => [
       allow.guest().to(["read"]),
       allow.authenticated().to(["read"]),
