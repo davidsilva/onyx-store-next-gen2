@@ -26,14 +26,17 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
       {product.images.length > 0 && (
         <div>
-          <ImageComponent path={product.images[0].key} altText={product.name} />
+          <ImageComponent
+            path={product.images[0].key}
+            altText={product.images[0].alt || product.name}
+          />
         </div>
       )}
       <div>
         <h2 className="text-xl font-bold">{product.name}</h2>
         <p>{product.description}</p>
         <p>
-          {product.price.toLocaleString("en-US", {
+          {(product.price / 100).toLocaleString("en-US", {
             style: "currency",
             currency: "USD",
           })}
