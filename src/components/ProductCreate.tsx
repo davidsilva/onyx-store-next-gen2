@@ -46,6 +46,14 @@ const client = generateClient<Schema>({
   authMode: "userPool",
 });
 
+const convertPriceToCentsInteger = (price: string) => {
+  const parsedPrice = parseFloat(price);
+  if (isNaN(parsedPrice)) {
+    throw new Error("Price must be a number.");
+  }
+  return Math.round(parsedPrice * 100);
+};
+
 const ProductCreate = () => {
   const [images, setImages] = useState<Image[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
@@ -65,7 +73,7 @@ const ProductCreate = () => {
       const result = await client.models.Product.create({
         name: data.name,
         description: data.description,
-        price: parseInt(data.price, 10) * 100, // convert to cents
+        price: convertPriceToCentsInteger(data.price), // convert to cents
       });
 
       console.log("result", result);
