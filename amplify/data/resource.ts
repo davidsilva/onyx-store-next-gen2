@@ -7,6 +7,7 @@ const schema = a.schema({
       description: a.string().required(),
       price: a.integer().required(), // In cents to avoid precision, rounding issues
       images: a.hasMany("ProductImage", "productId"),
+      mainImageS3Key: a.string(),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
@@ -16,7 +17,7 @@ const schema = a.schema({
 
   ProductImage: a
     .model({
-      key: a.string().required(),
+      s3Key: a.string().required(),
       alt: a.string(),
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
