@@ -1,11 +1,11 @@
 "use client";
 
 /* 
-- The createImage mutation has to be called to persist the image in the database. It needs the product ID and the image key. The product ID won't be available until the product is created, so the image record creation has to be done after the product creation.
+- The product ID won't be available until the product is created, so the image record creation is done after the product creation.
 - The user is able to enter information and upload or remove images in any order.
 - The user can add multiple images.
-- The images will stay in the S3 bucket even if the product is deleted.
-- We could have a script that runs periodically to delete images that are not associated with any product.
+- The ProductImages will stay in the S3 bucket even if the product is deleted, and even if the ProductImage records are deleted.
+- We could have a script that runs periodically to delete ProductImages that are not associated with any product.
 */
 import { useForm } from "react-hook-form";
 import { generateClient } from "@aws-amplify/api";
@@ -16,8 +16,9 @@ import {
   TextField,
   TextAreaField,
   Button,
+  SelectField,
 } from "@aws-amplify/ui-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
@@ -26,11 +27,12 @@ type FormData = {
   name: string;
   description: string;
   price: string;
+  mainImageS3Key: string | null;
 };
 
 type Image = {
   id?: string;
-  key: string;
+  s3Key: string;
   alt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -57,43 +59,53 @@ const convertPriceToCentsInteger = (price: string) => {
 const ProductCreate = () => {
   const [images, setImages] = useState<Image[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
-  const { register, handleSubmit, formState } = useForm<FormData>({
-    defaultValues: {
-      name: "",
-      description: "",
-      price: "",
-    },
-  });
+  const { register, handleSubmit, formState, setValue, getValues } =
+    useForm<FormData>({
+      defaultValues: {
+        name: "",
+        description: "",
+        price: "",
+        mainImageS3Key: "",
+      },
+    });
+
+  useEffect(() => {
+    // If the image selected as main image is removed, reset the main image selection
+    if (
+      images.length > 0 &&
+      !images.some((image) => image.s3Key === getValues("mainImageS3Key"))
+    ) {
+      console.log("resetting main image");
+      setValue("mainImageS3Key", "");
+    }
+  }, [images]);
 
   const onSubmit = handleSubmit(async (data) => {
     // Only called if form validation passes.
     console.log("form data", data);
 
+    // Eventually we should be able to make all this into a custom mutation
     try {
       const result = await client.models.Product.create({
         name: data.name,
         description: data.description,
         price: convertPriceToCentsInteger(data.price), // convert to cents
+        mainImageS3Key: data.mainImageS3Key,
       });
 
-      console.log("result", result);
+      console.log("product create result", result);
 
       const productId = result.data?.id;
 
       if (productId) {
         for (const image of images) {
           await client.models.ProductImage.create({
-            key: image.key,
+            s3Key: image.s3Key,
             alt: image.alt,
             productId,
           });
         }
 
-        const checkProduct = await client.models.Product.get(
-          { id: productId },
-          { selectionSet: ["id", "name", "description", "price", "images.*"] }
-        );
-        console.log("checkProduct", checkProduct);
         setMessage({
           type: "success",
           content: "Product created successfully.",
@@ -156,6 +168,15 @@ const ProductCreate = () => {
             </div>
             <div>
               <Text fontWeight={600}>Images</Text>
+              <div>
+                <SelectField label="Main Image" {...register("mainImageS3Key")}>
+                  {images.map((image, idx) => (
+                    <option key={idx} value={image.s3Key}>
+                      {image.s3Key}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
               <ImageUploader setImages={setImages} images={images} />
             </div>
             <div>
