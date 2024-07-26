@@ -7,7 +7,14 @@ export default async function Home() {
   const { data: products, errors } =
     await cookieBasedClient.models.Product.list({
       authMode: isSignedIn ? "userPool" : "iam",
-      selectionSet: ["id", "name", "description", "price", "images.*"],
+      selectionSet: [
+        "id",
+        "name",
+        "description",
+        "price",
+        "mainImageS3Key",
+        "images.*",
+      ],
     });
 
   console.log("products", products);
