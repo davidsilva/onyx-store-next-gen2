@@ -3,7 +3,7 @@ import ProductItemControls from "@/components/ProductItemControls";
 import ImageComponent from "@/components/Image";
 
 type Image = {
-  key: string;
+  s3Key: string;
   alt?: string | null;
 };
 
@@ -13,6 +13,7 @@ type Product = {
   description: string;
   price: number;
   images: Image[];
+  mainImageS3Key: string | null;
 };
 
 interface ProductItemProps {
@@ -22,13 +23,22 @@ interface ProductItemProps {
 
 const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
   console.log("ProductItem", product);
+
+  // If product.mainImageS3Key is set, show ImageComponent using the image from images that matches the s3Key.
+  // Otherwise, show the first image from the images array
+  const mainImage = product.images.find(
+    (image) => image.s3Key === product.mainImageS3Key
+  );
+  const mainImageS3Key = mainImage ? mainImage.s3Key : product.images[0].s3Key;
+  const mainImageAlt = mainImage ? mainImage.alt : product.images[0].alt;
+
   return (
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
       {product.images.length > 0 && (
         <div>
           <ImageComponent
-            path={product.images[0].key}
-            altText={product.images[0].alt || product.name}
+            path={mainImageS3Key}
+            altText={mainImageAlt || product.name}
           />
         </div>
       )}
