@@ -9,23 +9,23 @@ import {
   TextField,
   TextAreaField,
   Button,
+  SelectField,
 } from "@aws-amplify/ui-react";
 import { useState, useEffect, useRef } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
-// We might use this for comparing the current images with the original images.
-import _ from "lodash";
 
 type FormData = {
   name: string;
   description: string;
   price: string;
+  mainImageS3Key: string;
 };
 
 type Image = {
   id?: string;
-  key: string;
+  s3Key: string;
   alt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -38,6 +38,7 @@ type Product = {
   description: string;
   price: number;
   images: Image[];
+  mainImageS3Key: string | null;
 };
 
 type Message = {
@@ -67,8 +68,6 @@ const convertPriceToCentsInteger = (price: string) => {
 const ProductUpdate = ({ id }: ProductUpdateProps) => {
   const [images, setImages] = useState<Image[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
-  // We might use originalImagesRef to compare the current images with the original images. We could use lodash's isEqual function to compare the two objects -- and then call .update() only if the image and alt text value have changed.
-  const originalImagesRef = useRef<Image[]>([]);
   const [product, setProduct] = useState<Product | null>(null);
 
   const {
@@ -76,11 +75,14 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
+    setValue,
   } = useForm<FormData>({
     defaultValues: {
       name: "",
       description: "",
       price: "",
+      mainImageS3Key: "",
     },
   });
 
@@ -89,20 +91,29 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
       try {
         const result = await client.models.Product.get(
           { id },
-          { selectionSet: ["id", "name", "description", "price", "images.*"] }
+          {
+            selectionSet: [
+              "id",
+              "name",
+              "description",
+              "price",
+              "mainImageS3Key",
+              "images.*",
+            ],
+          }
         );
         console.log("result", result);
         if (result.data) {
           setProduct(result.data);
           if (result.data.images.length > 0) {
             setImages(result.data.images);
-            originalImagesRef.current = result.data.images;
             console.log("result.data.images", result.data.images);
           }
           reset({
             name: result.data.name,
             description: result.data.description,
             price: convertPriceToDollarsAndCentsString(result.data.price),
+            mainImageS3Key: result.data.mainImageS3Key || "",
           });
         }
       } catch (error) {
@@ -117,9 +128,20 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
     fetchProduct();
   }, [id, reset]);
 
+  useEffect(() => {
+    // If the image selected as main image is removed, reset the main image selection
+    if (
+      images.length > 0 &&
+      !images.some((image) => image.s3Key === getValues("mainImageS3Key"))
+    ) {
+      console.log("resetting main image");
+      setValue("mainImageS3Key", "");
+    }
+  }, [images]);
+
   const onSubmit = handleSubmit(async (data) => {
     // Only called if form validation passes, i.e., formState.isValid is true
-    // Among possible improvements: check if the form data is different from the original data before submitting the update. So, we could use the isDirty property from the formState object. Though... right now react-hook-form isn't used with the images form.
+    // Among possible improvements: check if the form data is different from the original data before submitting the update. We could maybe use the isDirty property from the formState object.
     console.log("form data", data);
     try {
       const result = await client.models.Product.update({
@@ -127,78 +149,43 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
         name: data.name,
         description: data.description,
         price: convertPriceToCentsInteger(data.price),
+        mainImageS3Key: data.mainImageS3Key,
       });
 
-      console.log("result", result);
+      console.log("product update result", result);
 
       const productId = result.data?.id;
 
-      console.log("onSubmit images", images);
-
       if (productId) {
-        for (const image of images) {
-          /*           
-          At least 2 possible approaches to updating images in db:
+        // Rather than figure out which images are new, updated or removed, we'll just delete all the images associated with the product and then create them all again.
+        const relatedImagesResult =
+          await client.models.ProductImage.listProductImageByProductId({
+            productId: productId,
+          });
+        console.log("relatedImagesResult", relatedImagesResult);
 
-          (1) Check which images are new, which have been updated (the alt text has been changed), and which have been removed -- and then call ProductImage.create(), ProductImage.update() and ProductImage.delete() as appropriate.
-          
-          (2) Delete all the image db records associated with the product and then create all the images again using the images state variable.
+        // Turn relatedImagesResult into an array of image ids. data is an array of objects, each with an id property.
+        const relatedImageIds = relatedImagesResult.data.map(
+          (image) => image.id
+        );
 
-          How could we make this more efficient? Bear in mind that we're dealing with just a handful of images (just 5). Right now, we're calling .update() even if the image and alt text value haven't changed. Could we use originalImagesRef.current to compare the current image with the original image? Could we use lodash's isEqual function to compare the two objects?
-          Could the create and update calls be batched?
-
-          Update image. Image has an id only if it has been created in the database, i.e., in a previous creation or edit. It won't have an id if it has only just been uploaded to S3.
-
- */ if (image.id) {
-            console.log("update image", image);
-            await client.models.ProductImage.update({
-              id: image.id,
-              key: image.key,
-              alt: image.alt,
-              productId,
-            });
-          } else {
-            // Create image
-            console.log("create image", image);
-            const { data } = await client.models.ProductImage.create({
-              key: image.key,
-              alt: image.alt,
-              productId,
-            });
-            console.log("create image data", data);
-            if (data) {
-              setImages((prevImages) =>
-                prevImages.map((img) =>
-                  img.key === image.key && img.alt === image.alt
-                    ? { ...img, id: data.id }
-                    : img
-                )
-              );
-            }
-          }
+        // Delete all images associated with the product.
+        for (const id of relatedImageIds) {
+          const deleteResult = await client.models.ProductImage.delete({ id });
+          console.log("image deleteResult", deleteResult);
         }
 
-        // Delete images that have been removed.
-        const imagesToDelete = originalImagesRef.current.filter(
-          (originalImage) =>
-            !images.some((image) => image.key === originalImage.key)
-        );
-
-        imagesToDelete.forEach(async (image) => {
-          console.log("delete image", image);
-          if (image.id) {
-            await client.models.ProductImage.delete({ id: image.id });
-          }
+        images.forEach(async (image) => {
+          await client.models.ProductImage.create({
+            s3Key: image.s3Key,
+            alt: image.alt,
+            productId,
+          });
         });
-
-        const checkProduct = await client.models.Product.get(
-          { id: productId },
-          { selectionSet: ["id", "name", "description", "price", "images.*"] }
-        );
-        console.log("checkProduct", checkProduct);
 
         clearCachesByServerAction();
         clearCachesByServerAction(`/admin/product-edit/${id}`);
+
         setMessage({
           type: "success",
           content: "The update was saved successfully.",
@@ -212,6 +199,14 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
       });
     }
   });
+
+  if (!product) {
+    return (
+      <Card>
+        <Text>Loading...</Text>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -259,6 +254,30 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
             </div>
             <div>
               <Text fontWeight={600}>Images</Text>
+              <div>
+                <SelectField
+                  label="Main Image"
+                  {...register("mainImageS3Key")}
+                  onChange={(e) => {
+                    const mainImageS3Key = e.currentTarget.value;
+                    setProduct((prevProduct) => {
+                      if (prevProduct) {
+                        return {
+                          ...prevProduct,
+                          mainImageS3Key,
+                        };
+                      }
+                      return prevProduct;
+                    });
+                  }}
+                >
+                  {images.map((image, idx) => (
+                    <option key={idx} value={image.s3Key}>
+                      {image.s3Key}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
               <ImageUploader setImages={setImages} images={images} />
             </div>
             <div>
