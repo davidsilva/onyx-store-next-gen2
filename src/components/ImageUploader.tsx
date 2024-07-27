@@ -125,10 +125,9 @@ const ImageUploader = ({
           onUploadError={(error) => console.error("error", error)}
           onFileRemove={({ key }) => {
             console.log("onFileRemove in StorageManager key", key);
-            const s3Key = `product-images/${key}`;
-            if (s3Key) {
+            if (key) {
               setImages((prevImages: Image[]) =>
-                prevImages.filter((image) => image.s3Key !== s3Key)
+                prevImages.filter((image) => image.s3Key !== key)
               );
             }
           }}
