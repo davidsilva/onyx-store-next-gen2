@@ -132,6 +132,7 @@ const ImageUploader = ({
               );
             }
           }}
+          defaultFiles={images.map((image) => ({ key: image.s3Key }))}
         />
       </div>
     </div>
