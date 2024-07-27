@@ -2,9 +2,15 @@ import { type Schema } from "@/../amplify/data/resource";
 import ProductItemControls from "@/components/ProductItemControls";
 import ImageComponent from "@/components/Image";
 
+type Nullable<T> = T | null;
+
 type Image = {
-  s3Key: string;
+  s3Key: Nullable<string>;
   alt?: string | null;
+  productId: Nullable<string>;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type Product = {
@@ -13,7 +19,7 @@ type Product = {
   description: string;
   price: number;
   images: Image[];
-  mainImageS3Key: string | null;
+  mainImageS3Key: Nullable<string>;
 };
 
 interface ProductItemProps {
@@ -48,7 +54,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
 
   return (
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
-      {mainImage && (
+      {mainImage && mainImageS3Key && (
         <div>
           <ImageComponent
             path={mainImageS3Key}

@@ -5,13 +5,15 @@ import { StorageImage, StorageManager } from "@aws-amplify/ui-react-storage";
 import _ from "lodash";
 import { useCallback, useState, useEffect } from "react";
 
+type Nullable<T> = T | null;
+
 type Image = {
   id?: string;
-  s3Key: string;
-  alt?: string | null;
+  s3Key: Nullable<string>;
+  alt: Nullable<string>;
   createdAt?: string;
   updatedAt?: string;
-  productId?: string | null;
+  productId?: Nullable<string>;
 };
 
 interface ImageUploaderProps {
@@ -49,14 +51,17 @@ const ImageUploader = ({
   }, 1000);
 
   const handleAltChange = useCallback(
-    (s3Key: string, value: string) => {
+    (s3Key: Nullable<string>, value: string) => {
+      if (!s3Key) {
+        return;
+      }
       setLocalAlts((prevAlts) => ({ ...prevAlts, [s3Key]: value }));
       debouncedUpdateAlt(s3Key, value);
     },
     [debouncedUpdateAlt]
   );
 
-  const handleRemoveImage = (s3Key: string) => {
+  const handleRemoveImage = (s3Key: Nullable<string>) => {
     console.log("handleRemoveImage", s3Key);
     setImages((prevImages: Image[]) =>
       prevImages.filter((image, idx) => image.s3Key !== s3Key)
@@ -65,13 +70,13 @@ const ImageUploader = ({
 
   // If user uploads an image with same name as an existing image, it will have the same s3Key. Presumably it can just replace the existing image.
   const uploadedImages = images.map((image, idx) => {
-    return (
-      <Card key={`${image.s3Key}-${idx}`} variation="outlined">
-        <div>
-          <Text>{image.s3Key}</Text>
-          <StorageImage path={image.s3Key} alt={image.alt ? image.alt : ""} />
-        </div>
-        {image.s3Key && (
+    if (image.s3Key) {
+      return (
+        <Card key={`${image.s3Key}-${idx}`} variation="outlined">
+          <div>
+            <Text>{image.s3Key}</Text>
+            <StorageImage path={image.s3Key} alt={image.alt ? image.alt : ""} />
+          </div>
           <div>
             <TextField
               type="text"
@@ -85,9 +90,9 @@ const ImageUploader = ({
               Remove
             </Button>
           </div>
-        )}
-      </Card>
-    );
+        </Card>
+      );
+    }
   });
 
   return (
@@ -131,7 +136,9 @@ const ImageUploader = ({
               );
             }
           }}
-          defaultFiles={images.map((image) => ({ key: image.s3Key }))}
+          defaultFiles={images
+            .filter((image) => image.s3Key !== null)
+            .map((image) => ({ key: image.s3Key as string }))}
         />
       </div>
     </div>

@@ -16,6 +16,8 @@ import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
 
+type Nullable<T> = T | null;
+
 type FormData = {
   name: string;
   description: string;
@@ -25,11 +27,11 @@ type FormData = {
 
 type Image = {
   id?: string;
-  s3Key: string;
-  alt?: string | null;
+  s3Key: Nullable<string>;
+  alt: Nullable<string>;
   createdAt?: string;
   updatedAt?: string;
-  productId?: string | null;
+  productId?: Nullable<string>;
 };
 
 type Product = {
@@ -38,7 +40,7 @@ type Product = {
   description: string;
   price: number;
   images: Image[];
-  mainImageS3Key: string | null;
+  mainImageS3Key: Nullable<string>;
 };
 
 type Message = {
@@ -272,8 +274,8 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
                   }}
                 >
                   {images.map((image, idx) => (
-                    <option key={idx} value={image.s3Key}>
-                      {image.s3Key}
+                    <option key={idx} value={image.s3Key ?? ""}>
+                      {image.s3Key ?? "No S3 Key"}
                     </option>
                   ))}
                 </SelectField>

@@ -23,6 +23,8 @@ import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
 
+type Nullable<T> = T | null;
+
 type FormData = {
   name: string;
   description: string;
@@ -32,11 +34,11 @@ type FormData = {
 
 type Image = {
   id?: string;
-  s3Key: string;
-  alt?: string | null;
+  s3Key: Nullable<string>;
+  alt: Nullable<string>;
   createdAt?: string;
   updatedAt?: string;
-  productId?: string | null;
+  productId?: Nullable<string>;
 };
 
 type Message = {
@@ -170,11 +172,13 @@ const ProductCreate = () => {
               <Text fontWeight={600}>Images</Text>
               <div>
                 <SelectField label="Main Image" {...register("mainImageS3Key")}>
-                  {images.map((image, idx) => (
-                    <option key={idx} value={image.s3Key}>
-                      {image.s3Key}
-                    </option>
-                  ))}
+                  {images
+                    .filter((image) => image.s3Key !== null)
+                    .map((image, idx) => (
+                      <option key={idx} value={image.s3Key as string}>
+                        {image.s3Key}
+                      </option>
+                    ))}
                 </SelectField>
               </div>
               <ImageUploader setImages={setImages} images={images} />
