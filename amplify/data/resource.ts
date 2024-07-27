@@ -17,7 +17,7 @@ const schema = a.schema({
 
   ProductImage: a
     .model({
-      s3Key: a.string().required(),
+      s3Key: a.string(),
       alt: a.string(),
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
