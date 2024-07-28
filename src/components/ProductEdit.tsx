@@ -156,10 +156,13 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
       // Turn relatedImagesResult into an array of image ids. data is an array of objects, each with an id property.
       const relatedImageIds = relatedImagesResult.data.map((image) => image.id);
 
-      // Delete all images associated with the product.
+      // Un-relate all images associated with the product.
       for (const id of relatedImageIds) {
-        const deleteResult = await client.models.ProductImage.delete({ id });
-        console.log("image deleteResult", deleteResult);
+        const unrelateResult = await client.models.ProductImage.update({
+          id,
+          productId: null,
+        });
+        console.log("image unrelateResult", unrelateResult);
       }
 
       images.forEach(async (image) => {
@@ -175,6 +178,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
         name: data.name,
         description: data.description,
         price: convertPriceToCentsInteger(data.price),
+        mainImageS3Key: data.mainImageS3Key,
       });
 
       console.log("product update result", result);
