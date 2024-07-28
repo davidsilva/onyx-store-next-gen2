@@ -39,7 +39,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
   // If product.mainImageS3Key is set, show ImageComponent using the image from images that matches the s3Key.
   // Otherwise, show the first image from the images array
 
-  if (product.images.length === 0) {
+  if (!product.images || product.images.length === 0) {
     mainImage = null;
   } else if (product.mainImageS3Key) {
     mainImage = product.images.find(
