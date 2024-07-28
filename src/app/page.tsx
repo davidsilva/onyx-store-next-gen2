@@ -4,8 +4,9 @@ import ProductItem from "@/components/ProductItem";
 
 export default async function Home() {
   const isSignedIn = await checkIsAuthenticated();
-  const { data: products, errors } =
-    await cookieBasedClient.models.Product.list({
+  let products = null;
+  try {
+    const { data, errors } = await cookieBasedClient.models.Product.list({
       authMode: isSignedIn ? "userPool" : "iam",
       selectionSet: [
         "id",
@@ -17,17 +18,23 @@ export default async function Home() {
       ],
     });
 
-  console.log("products", products);
+    console.log("products", products);
+    console.log("errors", errors);
+    products = data;
+  } catch (error) {
+    console.error("error", error);
+  }
 
   return (
     <main className="flex min-h-screen flex-col justify-between p-24">
-      {products?.map((product) => (
-        <ProductItem
-          key={product.id}
-          product={product}
-          isSignedIn={isSignedIn}
-        />
-      ))}
+      {products &&
+        products?.map((product) => (
+          <ProductItem
+            key={product.id}
+            product={product}
+            isSignedIn={isSignedIn}
+          />
+        ))}
     </main>
   );
 }
