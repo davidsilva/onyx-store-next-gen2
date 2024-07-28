@@ -146,53 +146,45 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
     // Among possible improvements: check if the form data is different from the original data before submitting the update. We could maybe use the isDirty property from the formState object.
     console.log("form data", data);
     try {
+      // Rather than figure out which images are new, updated or removed, we'll just delete all the images associated with the product and then create them all again.
+      const relatedImagesResult =
+        await client.models.ProductImage.listProductImageByProductId({
+          productId: id,
+        });
+      console.log("relatedImagesResult", relatedImagesResult);
+
+      // Turn relatedImagesResult into an array of image ids. data is an array of objects, each with an id property.
+      const relatedImageIds = relatedImagesResult.data.map((image) => image.id);
+
+      // Delete all images associated with the product.
+      for (const id of relatedImageIds) {
+        const deleteResult = await client.models.ProductImage.delete({ id });
+        console.log("image deleteResult", deleteResult);
+      }
+
+      images.forEach(async (image) => {
+        await client.models.ProductImage.create({
+          s3Key: image.s3Key,
+          alt: image.alt,
+          productId: id,
+        });
+      });
+
       const result = await client.models.Product.update({
         id,
         name: data.name,
         description: data.description,
         price: convertPriceToCentsInteger(data.price),
-        mainImageS3Key: data.mainImageS3Key,
       });
 
       console.log("product update result", result);
+      clearCachesByServerAction();
+      clearCachesByServerAction(`/admin/product-edit/${id}`);
 
-      const productId = result.data?.id;
-
-      if (productId) {
-        // Rather than figure out which images are new, updated or removed, we'll just delete all the images associated with the product and then create them all again.
-        const relatedImagesResult =
-          await client.models.ProductImage.listProductImageByProductId({
-            productId: productId,
-          });
-        console.log("relatedImagesResult", relatedImagesResult);
-
-        // Turn relatedImagesResult into an array of image ids. data is an array of objects, each with an id property.
-        const relatedImageIds = relatedImagesResult.data.map(
-          (image) => image.id
-        );
-
-        // Delete all images associated with the product.
-        for (const id of relatedImageIds) {
-          const deleteResult = await client.models.ProductImage.delete({ id });
-          console.log("image deleteResult", deleteResult);
-        }
-
-        images.forEach(async (image) => {
-          await client.models.ProductImage.create({
-            s3Key: image.s3Key,
-            alt: image.alt,
-            productId,
-          });
-        });
-
-        clearCachesByServerAction();
-        clearCachesByServerAction(`/admin/product-edit/${id}`);
-
-        setMessage({
-          type: "success",
-          content: "The update was saved successfully.",
-        });
-      }
+      setMessage({
+        type: "success",
+        content: "The update was saved successfully.",
+      });
     } catch (error) {
       console.error("error", error);
       setMessage({
@@ -205,7 +197,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
   if (!product) {
     return (
       <Card>
-        <Text>Loading...</Text>
+        <Text>No products...</Text>
       </Card>
     );
   }
