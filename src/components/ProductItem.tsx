@@ -35,22 +35,25 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
   }
 
   let mainImage = null;
+  let mainImageS3Key = null;
+  let mainImageAlt = null;
 
   // If product.mainImageS3Key is set, show ImageComponent using the image from images that matches the s3Key.
   // Otherwise, show the first image from the images array
 
-  if (!product.images || product.images.length === 0) {
-    mainImage = null;
-  } else if (product.mainImageS3Key) {
+  if (product.images && product.images.length > 0) {
     mainImage = product.images.find(
       (image) => image.s3Key === product.mainImageS3Key
     );
+    if (!mainImage) {
+      mainImage = product.images[0];
+    }
+    console.log("mainImage", mainImage);
+    mainImageS3Key = mainImage ? mainImage.s3Key : product.images[0].s3Key;
+    mainImageAlt = mainImage
+      ? mainImage.alt || product.name
+      : product.images[0].alt || product.name;
   }
-
-  const mainImageS3Key = mainImage ? mainImage.s3Key : product.images[0].s3Key;
-  const mainImageAlt = mainImage
-    ? mainImage.alt || product.name
-    : product.images[0].alt || product.name;
 
   return (
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
