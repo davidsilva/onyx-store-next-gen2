@@ -11,7 +11,7 @@ import {
   Button,
   SelectField,
 } from "@aws-amplify/ui-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
@@ -146,7 +146,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
     // Among possible improvements: check if the form data is different from the original data before submitting the update. We could maybe use the isDirty property from the formState object.
     console.log("form data", data);
     try {
-      // Rather than figure out which images are new, updated or removed, we'll just delete all the images associated with the product and then create them all again.
+      // Rather than figure out which images are new, updated or removed, we'll just dissassociate all the images associated with the product and then create them all again.
       const relatedImagesResult =
         await client.models.ProductImage.listProductImageByProductId({
           productId: id,
