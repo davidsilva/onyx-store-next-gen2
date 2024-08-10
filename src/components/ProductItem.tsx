@@ -1,26 +1,7 @@
 import { type Schema } from "@/../amplify/data/resource";
 import ProductItemControls from "@/components/ProductItemControls";
 import ImageComponent from "@/components/Image";
-
-type Nullable<T> = T | null;
-
-type Image = {
-  s3Key: Nullable<string>;
-  alt?: string | null;
-  productId: Nullable<string>;
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: Image[];
-  mainImageS3Key: Nullable<string>;
-};
+import { Product } from "@/types";
 
 interface ProductItemProps {
   product: Product;
@@ -74,7 +55,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
             currency: "USD",
           })}
         </p>
-        <ProductItemControls id={product.id} isSignedIn={isSignedIn} />
+        <ProductItemControls product={product} isSignedIn={isSignedIn} />
       </div>
     </div>
   );
