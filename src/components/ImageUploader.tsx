@@ -4,17 +4,7 @@ import { Text, TextField, Card, Grid, Button } from "@aws-amplify/ui-react";
 import { StorageImage, StorageManager } from "@aws-amplify/ui-react-storage";
 import _ from "lodash";
 import { useCallback, useState, useEffect } from "react";
-
-type Nullable<T> = T | null;
-
-type Image = {
-  id?: string;
-  s3Key: Nullable<string>;
-  alt: Nullable<string>;
-  createdAt?: string;
-  updatedAt?: string;
-  productId?: Nullable<string>;
-};
+import { Nullable, Product, Image } from "@/types";
 
 interface ImageUploaderProps {
   setImages: React.Dispatch<React.SetStateAction<Image[]>>;

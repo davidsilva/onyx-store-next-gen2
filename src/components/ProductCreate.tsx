@@ -22,23 +22,13 @@ import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
-
-type Nullable<T> = T | null;
+import { Image } from "@/types";
 
 type FormData = {
   name: string;
   description: string;
   price: string;
   mainImageS3Key: string | null;
-};
-
-type Image = {
-  id?: string;
-  s3Key: Nullable<string>;
-  alt: Nullable<string>;
-  createdAt?: string;
-  updatedAt?: string;
-  productId?: Nullable<string>;
 };
 
 type Message = {
