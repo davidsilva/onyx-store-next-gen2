@@ -5,16 +5,23 @@ import { generateClient } from "aws-amplify/api";
 import { type Schema } from "@/../amplify/data/resource";
 import clearCachesByServerAction from "@/actions/revalidate";
 import { useAdminContext } from "@/context/AdminContext";
+import { Product } from "@/types";
 
 interface ProductItemControlsProps {
-  id: string;
+  product: Product;
   isSignedIn: boolean;
 }
 
 const client = generateClient<Schema>();
 
-const ProductItemControls = ({ id, isSignedIn }: ProductItemControlsProps) => {
+const ProductItemControls = ({
+  product,
+  isSignedIn,
+}: ProductItemControlsProps) => {
+  const { id } = product;
   const { isAdmin } = useAdminContext();
+
+  console.log("ProductItemControls", product);
 
   const router = useRouter();
 
@@ -24,36 +31,36 @@ const ProductItemControls = ({ id, isSignedIn }: ProductItemControlsProps) => {
 
   const handleDelete = async () => {
     /* 
-      Eventually we will have some kind of soft delete. 
+      How can we implement a custom mutation in AWS Amplify delete (hard or soft) a product and its associated images in one go? The documentation is essentially here: https://docs.amplify.aws/react/build-a-backend/data/connect-to-existing-data-sources/connect-external-ddb-table/.
 
-      How can we implement a custom mutation in AWS Amplify delete (hard or soft) a product and its associated images? The documentation is essentially here: https://docs.amplify.aws/react/build-a-backend/data/connect-to-existing-data-sources/connect-external-ddb-table/
+      We could also have an event trigger that listens for a product deletion/archiving and deletes/archives the associated images using a Lambda function.
     */
     try {
-      const imagesToDeleteResult =
+      const imagesToArchiveResult =
         await client.models.ProductImage.listProductImageByProductId(
           {
             productId: id,
           },
           { authMode: "userPool" }
         );
-      console.log("imagesToDeleteResult", imagesToDeleteResult);
+      console.log("imagesToArchiveResult", imagesToArchiveResult);
 
-      const imagesToDeleteIds = imagesToDeleteResult.data?.map(
+      const imagesToArchiveIds = imagesToArchiveResult.data?.map(
         (image) => image.id
       );
 
-      imagesToDeleteIds.forEach(async (imageId) => {
-        await client.models.ProductImage.delete(
-          { id: imageId },
+      imagesToArchiveIds.forEach(async (imageId) => {
+        await client.models.ProductImage.update(
+          { id: imageId, isArchived: true, productId: null },
           { authMode: "userPool" }
         );
       });
 
-      const productDeleteResult = await client.models.Product.delete(
-        { id },
+      const archiveProductResult = await client.mutations.archiveProduct(
+        { productId: id, archive: !product.isArchived },
         { authMode: "userPool" }
       );
-      console.log("Deleted product", productDeleteResult);
+      console.log("Archived product", archiveProductResult);
 
       clearCachesByServerAction();
     } catch (error) {
@@ -71,7 +78,7 @@ const ProductItemControls = ({ id, isSignedIn }: ProductItemControlsProps) => {
             Edit
           </button>
           <button className="btn btn-blue" onClick={handleDelete}>
-            Delete
+            {product.isArchived ? "Restore" : "Archive"}
           </button>
         </>
       )}
