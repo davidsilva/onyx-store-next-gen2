@@ -15,32 +15,13 @@ import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import ImageUploader from "./ImageUploader";
 import clearCachesByServerAction from "@/actions/revalidate";
-
-type Nullable<T> = T | null;
+import { Product, Image } from "@/types";
 
 type FormData = {
   name: string;
   description: string;
   price: string;
   mainImageS3Key: string;
-};
-
-type Image = {
-  id?: string;
-  s3Key: Nullable<string>;
-  alt: Nullable<string>;
-  createdAt?: string;
-  updatedAt?: string;
-  productId?: Nullable<string>;
-};
-
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: Image[];
-  mainImageS3Key: Nullable<string>;
 };
 
 type Message = {
@@ -100,6 +81,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
               "description",
               "price",
               "mainImageS3Key",
+              "isArchived",
               "images.*",
             ],
           }
@@ -156,11 +138,12 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
       // Turn relatedImagesResult into an array of image ids. data is an array of objects, each with an id property.
       const relatedImageIds = relatedImagesResult.data.map((image) => image.id);
 
-      // Un-relate all images associated with the product.
+      // Un-relate and archive all images associated with the product.
       for (const id of relatedImageIds) {
         const unrelateResult = await client.models.ProductImage.update({
           id,
           productId: null,
+          isArchived: true,
         });
         console.log("image unrelateResult", unrelateResult);
       }
