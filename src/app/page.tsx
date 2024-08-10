@@ -14,6 +14,7 @@ export default async function Home() {
         "description",
         "price",
         "mainImageS3Key",
+        "isArchived",
         "images.*",
       ],
     });
