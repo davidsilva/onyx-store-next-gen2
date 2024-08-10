@@ -8,6 +8,7 @@ const schema = a.schema({
       price: a.integer().required(), // In cents to avoid precision, rounding issues
       images: a.hasMany("ProductImage", "productId"),
       mainImageS3Key: a.string(),
+      isArchived: a.boolean(),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
@@ -21,6 +22,7 @@ const schema = a.schema({
       alt: a.string(),
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
+      isArchived: a.boolean(),
     })
     .secondaryIndexes((index) => [index("productId")])
     .authorization((allow) => [
@@ -28,6 +30,19 @@ const schema = a.schema({
       allow.authenticated().to(["read"]),
       allow.group("Admins"),
     ]),
+
+  // sets isArchived to true by default, false if "archive" is false
+  archiveProduct: a
+    .mutation()
+    .arguments({ productId: a.id(), archive: a.boolean() })
+    .returns(a.ref("Product"))
+    .authorization((allow) => [allow.group("Admins")])
+    .handler(
+      a.handler.custom({
+        dataSource: a.ref("Product"),
+        entry: "./resolvers/archiveProduct.js",
+      })
+    ),
 });
 
 export type Schema = ClientSchema<typeof schema>;
