@@ -9,7 +9,7 @@ interface ProductItemProps {
 }
 
 const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
-  console.log("ProductItem", product);
+  // console.log("ProductItem", product);
 
   if (!product) {
     return null;
@@ -29,7 +29,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
     if (!mainImage) {
       mainImage = product.images[0];
     }
-    console.log("mainImage", mainImage);
+    // console.log("mainImage", mainImage);
     mainImageS3Key = mainImage ? mainImage.s3Key : product.images[0].s3Key;
     mainImageAlt = mainImage
       ? mainImage.alt || product.name
@@ -48,6 +48,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
       )}
       <div>
         <h2 className="text-xl font-bold">{product.name}</h2>
+        <p>{product.id}</p>
         <p>{product.description}</p>
         <p>
           {(product.price / 100).toLocaleString("en-US", {

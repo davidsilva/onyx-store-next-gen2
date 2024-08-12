@@ -21,7 +21,7 @@ const ProductItemControls = ({
   const { id } = product;
   const { isAdmin } = useAdminContext();
 
-  console.log("ProductItemControls", product);
+  // console.log("ProductItemControls", product);
 
   const router = useRouter();
 
