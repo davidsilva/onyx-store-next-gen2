@@ -24,6 +24,8 @@
   "devDependencies": {
     "@aws-amplify/backend": "^1.0.4",
     "@aws-amplify/backend-cli": "^1.2.1",
+    "@aws-lambda-powertools/logger": "^2.7.0",
+    "@types/aws-lambda": "^8.10.143",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

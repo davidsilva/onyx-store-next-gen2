@@ -1,4 +1,14 @@
-import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import {
+  type ClientSchema,
+  a,
+  defineData,
+  defineFunction,
+} from "@aws-amplify/backend";
+
+export const createStripeProductFunction = defineFunction({
+  name: "create-stripe-product",
+  entry: "../functions/create-stripe-product/handler.ts",
+});
 
 const schema = a.schema({
   Product: a
@@ -9,6 +19,8 @@ const schema = a.schema({
       images: a.hasMany("ProductImage", "productId"),
       mainImageS3Key: a.string(),
       isArchived: a.boolean(),
+      stripeProductId: a.string(),
+      stripePriceId: a.string(),
     })
     .authorization((allow) => [
       allow.guest().to(["read"]),
@@ -44,7 +56,7 @@ const schema = a.schema({
       })
     ),
 });
-
+// .authorization((allow) => [allow.resource(createStripeProductFunction)])
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
