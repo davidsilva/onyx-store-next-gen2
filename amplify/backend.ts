@@ -48,6 +48,7 @@ myLambda.role?.attachInlinePolicy(
         effect: Effect.ALLOW,
         actions: [
           "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
           "dynamodb:DescribeStream",
           "dynamodb:GetRecords",
           "dynamodb:GetShardIterator",
