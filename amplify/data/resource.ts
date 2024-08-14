@@ -5,11 +5,6 @@ import {
   defineFunction,
 } from "@aws-amplify/backend";
 
-export const createStripeProductFunction = defineFunction({
-  name: "create-stripe-product",
-  entry: "../functions/create-stripe-product/handler.ts",
-});
-
 const schema = a.schema({
   Product: a
     .model({
@@ -62,6 +57,6 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "iam",
+    defaultAuthorizationMode: "userPool",
   },
 });
