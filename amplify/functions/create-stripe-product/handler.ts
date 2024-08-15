@@ -9,6 +9,10 @@ import {
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import Stripe from "stripe";
+
+let stripe: Stripe;
 
 const logger = new Logger({
   logLevel: "INFO",
@@ -32,8 +36,15 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         >;
         const newProduct = unmarshall(newImage);
 
-        const stripeProductId = "prod_123";
-        const stripePriceId = "price_123";
+        const stripeProductId = await createStripeProductId({
+          name: newProduct.name,
+          description: newProduct.description,
+        });
+
+        const stripePriceId = await createStripePriceId({
+          stripeProductId,
+          price: newProduct.price,
+        });
 
         try {
           await updateProductWithStripeIds(
@@ -42,7 +53,7 @@ export const handler: DynamoDBStreamHandler = async (event) => {
             stripePriceId
           );
           logger.info(
-            `Successfully updated product ${newProduct.id} with Stripe IDs.`
+            `Successfully updated product ${newProduct.id} with Stripe IDs. Product table name is ${process.env.PRODUCT_TABLE_NAME}`
           );
         } catch (error) {
           logger.error(`Error updating product with Stripe IDs: ${error}`);
@@ -59,13 +70,74 @@ export const handler: DynamoDBStreamHandler = async (event) => {
   };
 };
 
+async function getStripeSecretKey() {
+  const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
+  const input = {
+    // GetParameterRequest
+    Name: "/stripe/STRIPE_SECURE_KEY", // required
+    WithDecryption: true,
+  };
+  const command = new GetParameterCommand(input);
+  const response = await ssmClient.send(command);
+  return response.Parameter?.Value;
+}
+
+async function getStripeClient() {
+  if (!stripe) {
+    const secretKey = await getStripeSecretKey();
+    if (!secretKey) {
+      throw new Error("Stripe secret key not found.");
+    }
+    stripe = new Stripe(secretKey);
+  }
+
+  return stripe;
+}
+
+async function createStripeProductId({
+  name,
+  description,
+}: {
+  name: string;
+  description: string;
+}) {
+  if (!name || !description) {
+    return Promise.reject("Name and description are required");
+  }
+
+  const stripe = await getStripeClient();
+
+  const stripeProduct = await stripe.products.create({ name, description });
+
+  return stripeProduct.id;
+}
+
+async function createStripePriceId(input: {
+  stripeProductId: string;
+  price: number;
+}) {
+  if (!input.price) {
+    return Promise.reject("Price is required");
+  }
+
+  const stripe = await getStripeClient();
+
+  const stripePrice = await stripe.prices.create({
+    product: input.stripeProductId,
+    unit_amount: input.price, // in cents
+    currency: "usd",
+  });
+
+  return stripePrice.id;
+}
+
 async function updateProductWithStripeIds(
   productId: string,
   stripeProductId: string,
   stripePriceId: string
 ) {
   const params = {
-    TableName: "Product-ckawyp75tjgkbgnvn2ypbsssgq-NONE",
+    TableName: process.env.PRODUCT_TABLE_NAME,
     Key: marshall({ id: productId }),
     UpdateExpression:
       "SET stripeProductId = :stripeProductId, stripePriceId = :stripePriceId",
