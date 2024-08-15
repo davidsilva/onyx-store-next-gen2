@@ -22,6 +22,8 @@ const backend = defineBackend({
   storage,
 });
 
+const productTable = backend.data.resources.tables["Product"];
+
 const dataStack = Stack.of(backend.data);
 
 const myLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
@@ -31,9 +33,10 @@ const myLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
     { buildMode: BuildMode.Esbuild }
   ),
   runtime: LambdaRuntime.NODEJS_20_X,
+  environment: {
+    PRODUCT_TABLE_NAME: productTable.tableName,
+  },
 });
-
-const productTable = backend.data.resources.tables["Product"];
 
 const eventSource = new DynamoEventSource(productTable, {
   startingPosition: StartingPosition.LATEST,
@@ -54,6 +57,18 @@ myLambda.role?.attachInlinePolicy(
           "dynamodb:GetShardIterator",
           "dynamodb:ListStreams",
         ],
+        resources: [productTable.tableArn],
+      }),
+    ],
+  })
+);
+
+myLambda.role?.attachInlinePolicy(
+  new Policy(Stack.of(myLambda), "SSMPolicy", {
+    statements: [
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["ssm:GetParameter"],
         resources: ["*"],
       }),
     ],
