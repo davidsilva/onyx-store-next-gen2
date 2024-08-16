@@ -1,6 +1,6 @@
 # NextJS + TypeScript + Amplify Gen 2
 
-This repo accompanies this video and is mainly for reference: [Getting Started with NextJS and AWS Amplify Gen 2](https://youtu.be/1H6S5O4C6G8).
+This repo accompanies these videos and is mainly for reference: [Getting Started with NextJS and AWS Amplify Gen 2](https://youtube.com/playlist?list=PL7FXjzyGAf4WIUnktuJAGk5x7WhcHvQuP&si=b7Ost60CMWAN0DCF).
 
 What we have here is a demo app to show NextJS working with AWS Amplify Gen 2. It's the beginning of an app that will allow...
 
@@ -17,25 +17,30 @@ The app currently has the following capabilities:
 - sign up, sign in and sign out
 - creating, updating and deleting products
 - adding multiple images to a product
+- creating product and price objects in Stripe, and adding Stripe IDs to our product.
 
 The code in this repo currently demonstrates...
 
-- auth configuration in amplify/auth/resource.ts that creates an "Admins" group and specifies that users will sign in using an email address
-- a schema in amplify/data/resource.ts for a Product model and ProductImage model that are connected via a one-to-many relationship
-- permissions that allow authenticated and unauthenticated users to read the Product and ProductImage data
-- permissions that allow members of the Admins group to create, update and delete Product and ProductImage items
-- configuration of an S3 bucket for storing product images
-- in utils/amplify-utils.ts the creation of a cookie-based client for accessing data, and determining signed-in and admin status, from server-side-rendered pages
-- utils/middleware.ts middleware for limiting access to admin/\* pages to admin users
-- forms for creating and updating products, including uploading images for a product and entering alt text for images
-- using Amplify's Authenticator client component and context provider
-- an admin context provider and custom hook so that client components can determine whether of not a user is an admin
-- use of Amplify's StorageManager and StorageImage React components
+- auth configuration in amplify/auth/resource.ts that creates an "Admins" group and specifies that users will sign in using an email address.
+- a schema in amplify/data/resource.ts for a Product model and ProductImage model that are connected via a one-to-many relationship.
+- permissions that allow authenticated and unauthenticated users to read the Product and ProductImage data.
+- permissions that allow members of the Admins group to create, update and delete Product and ProductImage items.
+- configuration of an S3 bucket for storing product images.
+- in utils/amplify-utils.ts the creation of a cookie-based client for accessing data, and determining signed-in and admin status, from server-side-rendered pages.
+- utils/middleware.ts middleware for limiting access to admin/\* pages to admin users.
+- forms for creating and updating products, including uploading images for a product and entering alt text for images.
+- using Amplify's Authenticator client component and context provider.
+- an admin context provider and custom hook so that client components can determine whether of not a user is an admin.
+- use of Amplify's StorageManager and StorageImage React components.
 - use of various components from Amplify's ui-react library.
+- creating a Lambda function -- but not not by using Amplify's `defineFunction()`, as Amplify currently has "circular dependency" issues.
+- using a Lambda function to respond to an INSERT event in the Product table, and then calling the Stripe API to create product and price objects, and finally updating the product in our table with the Stripe product and price IDs.
 
 ## Relevant Links
 
 - [AWS Amplify](https://aws.amazon.com/amplify/)
+- [AWS Amplify Discord Channel](https://discord.gg/R42X9TbS)
+- [AWS Amplify GitHub Repo](https://github.com/aws-amplify/)
 - [Setting Up an AWS Dev Account](https://aws.amazon.com/free)
 - [Setting Up Amplify](https://docs.amplify.aws/nextjs/start/account-setup/)
 - [Manual Installation of Amplify](https://docs.amplify.aws/react/start/manual-installation/)
@@ -51,9 +56,14 @@ The code in this repo currently demonstrates...
 
 ## Version History
 
+- **\*0.1.2** -- 2024-08-16
+
+  - Release to coincide with [Getting Started with Amplify Gen 2: Stripe & Lambda Functions Part 4](https://youtu.be/ZLZYq6T0sY0)
+  - On creation of a new product, we call the Stripe API to create product and price objects. We then update the product in our table with Stripe product and price IDs.
+
 - **\*0.1.1** -- 2024-07-30
 
-  - Release to conside with [second video](https://youtu.be/1H6S5O4C6G8)
+  - Release to coincide with [second video](https://youtu.be/1H6S5O4C6G8)
   - Added support for multiple images for each product, setting one image as a "main" image, and adding alt text for images.
 
 - **v0.1.0** -- 2024-07-15
