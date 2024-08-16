@@ -63,13 +63,17 @@ myLambda.role?.attachInlinePolicy(
   })
 );
 
+const stripeSecureKeyArn = `arn:aws:ssm:${Stack.of(myLambda).region}:${
+  Stack.of(myLambda).account
+}:parameter/stripe/STRIPE_SECURE_KEY`;
+
 myLambda.role?.attachInlinePolicy(
   new Policy(Stack.of(myLambda), "SSMPolicy", {
     statements: [
       new PolicyStatement({
         effect: Effect.ALLOW,
         actions: ["ssm:GetParameter"],
-        resources: ["*"],
+        resources: [stripeSecureKeyArn],
       }),
     ],
   })
