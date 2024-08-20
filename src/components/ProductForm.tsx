@@ -20,7 +20,7 @@ type FormData = {
 };
 
 type ProductFormProps = {
-  product: Product;
+  product: Product | null;
   setProduct: React.Dispatch<React.SetStateAction<Product | null>>;
   images: Image[];
   setImages: React.Dispatch<React.SetStateAction<Image[]>>;
@@ -61,8 +61,8 @@ const ProductForm = ({
   useEffect(() => {
     if (product) {
       reset({
-        name: product.name,
-        description: product.description,
+        name: product.name || "",
+        description: product.description || "",
         price: convertPriceToDollarsAndCentsString(product.price),
         mainImageS3Key: product.mainImageS3Key || "",
       });
@@ -146,7 +146,7 @@ const ProductForm = ({
           <ImageUploader setImages={setImages} images={images} />
         </div>
         <div>
-          <Button type="submit">Update Product</Button>
+          <Button type="submit">Submit</Button>
         </div>
       </form>
     </>
