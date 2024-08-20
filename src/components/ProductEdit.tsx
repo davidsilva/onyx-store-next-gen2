@@ -7,6 +7,7 @@ import { type Schema } from "@/../amplify/data/resource";
 import clearCachesByServerAction from "@/actions/revalidate";
 import { Product, Image } from "@/types";
 import ProductForm from "./ProductForm";
+import { convertPriceToCentsInteger } from "@/utils/util";
 
 type FormData = {
   name: string;
@@ -27,14 +28,6 @@ const client = generateClient<Schema>({
 interface ProductUpdateProps {
   id: string;
 }
-
-const convertPriceToCentsInteger = (price: string) => {
-  const parsedPrice = parseFloat(price);
-  if (isNaN(parsedPrice)) {
-    throw new Error("Price must be a number.");
-  }
-  return Math.round(parsedPrice * 100);
-};
 
 const ProductUpdate = ({ id }: ProductUpdateProps) => {
   const [images, setImages] = useState<Image[]>([]);
