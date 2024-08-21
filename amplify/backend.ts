@@ -29,7 +29,7 @@ const dataStack = Stack.of(backend.data);
 const myLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
   handler: "index.handler",
   code: lambdaCodeFromAssetHelper(
-    path.resolve("amplify/functions/create-stripe-product/handler.ts"),
+    path.resolve("amplify/functions/stripe-product/handler.ts"),
     { buildMode: BuildMode.Esbuild }
   ),
   runtime: LambdaRuntime.NODEJS_20_X,
