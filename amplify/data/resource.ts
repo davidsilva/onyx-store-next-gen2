@@ -13,7 +13,8 @@ const schema = a.schema({
       price: a.integer().required(), // In cents to avoid precision, rounding issues
       images: a.hasMany("ProductImage", "productId"),
       mainImageS3Key: a.string(),
-      isArchived: a.boolean(),
+      isActive: a.boolean(), // whether the product is available for purchase
+      isArchived: a.boolean(), // effectively a soft delete
       stripeProductId: a.string(),
       stripePriceId: a.string(),
     })
