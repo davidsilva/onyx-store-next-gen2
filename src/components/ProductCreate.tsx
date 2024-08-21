@@ -16,12 +16,16 @@ import { Product, Image } from "@/types";
 import ProductForm from "./ProductForm";
 import { convertPriceToCentsInteger } from "@/utils/util";
 
-type FormData = {
-  name: string;
-  description: string;
+type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
   price: string;
-  mainImageS3Key: string | null;
 };
+
+// type FormData = {
+//   name: string;
+//   description: string;
+//   price: string;
+//   mainImageS3Key: string | null;
+// };
 
 type Message = {
   type: "error" | "success";
@@ -48,6 +52,7 @@ const ProductCreate = () => {
         description: data.description,
         price: convertPriceToCentsInteger(data.price), // convert to cents
         mainImageS3Key: data.mainImageS3Key,
+        isActive: data.isActive,
       });
 
       console.log("product create result", result);

@@ -7,16 +7,14 @@ import {
   TextAreaField,
   Button,
   SelectField,
+  CheckboxField,
 } from "@aws-amplify/ui-react";
 import ImageUploader from "./ImageUploader";
 import { Product, Image } from "@/types";
 import { useEffect } from "react";
 
-type FormData = {
-  name: string;
-  description: string;
+type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
   price: string;
-  mainImageS3Key: string;
 };
 
 type ProductFormProps = {
@@ -65,6 +63,7 @@ const ProductForm = ({
         description: product.description || "",
         price: convertPriceToDollarsAndCentsString(product.price),
         mainImageS3Key: product.mainImageS3Key || "",
+        isActive: product.isActive || false,
       });
     }
   }, [product]);
@@ -144,6 +143,25 @@ const ProductForm = ({
             </SelectField>
           </div>
           <ImageUploader setImages={setImages} images={images} />
+        </div>
+        <div>
+          <CheckboxField
+            {...register("isActive")}
+            checked={product?.isActive ?? false}
+            label="Is Active"
+            onChange={(e) => {
+              const isActive = e.currentTarget.checked;
+              setProduct((prevProduct) => {
+                if (prevProduct) {
+                  return {
+                    ...prevProduct,
+                    isActive,
+                  };
+                }
+                return prevProduct;
+              });
+            }}
+          />
         </div>
         <div>
           <Button type="submit">Submit</Button>
