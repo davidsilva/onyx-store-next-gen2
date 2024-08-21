@@ -1,4 +1,3 @@
-import { type Schema } from "@/../amplify/data/resource";
 import ProductItemControls from "@/components/ProductItemControls";
 import ImageComponent from "@/components/Image";
 import { Product } from "@/types";
