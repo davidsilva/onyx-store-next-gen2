@@ -1,5 +1,9 @@
 /* 
 When there is an INSERT event in the DynamoDB Product table, this handler will call the Stripe API to create a product and price. Those values will then be stored in the Product table as stripeProductId and stripePriceId for the newly created product.
+
+The UPDATE event calls the Stripe API to update the product and price with the new values.
+
+The REMOVE event is not handled in this example, but you *could* add logic to delete the product and price from Stripe when a product is deleted from the Product table. But our app generally wants to do soft deletes, so we might mimic that behavior in Stripe by deactivating the product and price instead of deleting them.
 */
 import {
   DynamoDBClient,
@@ -7,10 +11,32 @@ import {
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import type { DynamoDBStreamHandler } from "aws-lambda";
+import type { DynamoDBRecord, DynamoDBStreamHandler } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import Stripe from "stripe";
+
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  isActive: boolean;
+  isArchived: boolean;
+  stripeProductId: string;
+  stripePriceId: string;
+};
+
+type StripeProductInput = {
+  name: string;
+  description: string;
+  isActive?: boolean;
+};
+
+type StripePriceInput = {
+  stripeProductId: string;
+  price: number;
+};
 
 let stripe: Stripe;
 
@@ -26,41 +52,18 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     logger.info(`Processing record: ${record.eventID}`);
     logger.info(`Event Type: ${record.eventName}`);
 
-    if (record.eventName === "INSERT") {
-      logger.info(`New Image: ${JSON.stringify(record.dynamodb?.NewImage)}`);
-      if (record.dynamodb?.NewImage) {
-        // business logic to process new records
-        const newImage = record.dynamodb.NewImage as Record<
-          string,
-          AttributeValue
-        >;
-        const newProduct = unmarshall(newImage);
-
-        const stripeProductId = await createStripeProductId({
-          name: newProduct.name,
-          description: newProduct.description,
-        });
-
-        const stripePriceId = await createStripePriceId({
-          stripeProductId,
-          price: newProduct.price,
-        });
-
-        try {
-          await updateProductWithStripeIds(
-            newProduct.id,
-            stripeProductId,
-            stripePriceId
-          );
-          logger.info(
-            `Successfully updated product ${newProduct.id} with Stripe IDs. Product table name is ${process.env.PRODUCT_TABLE_NAME}`
-          );
-        } catch (error) {
-          logger.error(`Error updating product with Stripe IDs: ${error}`);
-        }
-      } else {
-        logger.warn("No NewImage found in record.");
-      }
+    switch (record.eventName) {
+      case "INSERT":
+        await processInsert(record);
+        break;
+      case "MODIFY":
+        await processModify(record);
+        break;
+      case "REMOVE":
+        await processRemove(record);
+        break;
+      default:
+        logger.warn(`Unsupported event type: ${record.eventName}`);
     }
   }
   logger.info(`Successfully processed ${event.Records.length} records.`);
@@ -69,6 +72,102 @@ export const handler: DynamoDBStreamHandler = async (event) => {
     batchItemFailures: [],
   };
 };
+
+async function processInsert(record: DynamoDBRecord) {
+  logger.info(`New Image: ${JSON.stringify(record.dynamodb?.NewImage)}`);
+  if (record.dynamodb?.NewImage) {
+    // business logic to process new records
+    const newImage = record.dynamodb.NewImage as Record<string, AttributeValue>;
+    const newProduct = unmarshall(newImage);
+
+    try {
+      const stripeProductId = await createStripeProductId({
+        name: newProduct.name,
+        description: newProduct.description,
+      });
+
+      const stripePriceId = await createStripePriceId({
+        stripeProductId,
+        price: newProduct.price,
+      });
+
+      await updateProductWithStripeIds(
+        newProduct.id,
+        stripeProductId,
+        stripePriceId
+      );
+      logger.info(
+        `Successfully updated product ${newProduct.id} with Stripe IDs. Product table name is ${process.env.PRODUCT_TABLE_NAME}`
+      );
+    } catch (error) {
+      const err = error as Error;
+      logger.error(`Error updating product with Stripe IDs: ${err.message}`);
+    }
+  } else {
+    logger.warn("No NewImage found in record.");
+  }
+}
+
+async function processModify(record: DynamoDBRecord) {
+  // We can compare newImage and oldImage to determine what has changed -- and whether the Stripe API has to be called.
+  // If the price has changed, we call the Stripe API to update the price. What that means is that we have to create a new price in Stripe (if one with that value and associated with the product doesn't exist) and then update the product to use the new price.
+  // If name, description or isActive has changed, we call the Stripe API to update the product.
+  // The Stripe Price object has an "active" property but I don't think there's a reason to have it match the Stripe Product object's "active" property. In the Stripe world, products can have multiple prices.
+  logger.info(`MODIFY event: ${JSON.stringify(record.dynamodb)}`);
+
+  try {
+    const newImage = record.dynamodb?.NewImage as Record<
+      string,
+      AttributeValue
+    >;
+    const oldImage = record.dynamodb?.OldImage as Record<
+      string,
+      AttributeValue
+    >;
+    const newProduct = unmarshall(newImage);
+    const oldProduct = unmarshall(oldImage);
+
+    const propertiesToCheck = ["name", "description", "price", "isActive"];
+    const changes = checkForChanges(newProduct, oldProduct, propertiesToCheck);
+
+    if (changes.length > 0) {
+      const productChanges = changes.filter((change) =>
+        ["name", "description", "isActive"].includes(change.property)
+      );
+      const priceChanges = changes.filter(
+        (change) => change.property === "price"
+      );
+
+      if (productChanges.length > 0) {
+        // update the product in Stripe
+        logger.info(`Product details have changed`);
+        await updateStripeProduct(newProduct);
+      }
+
+      if (priceChanges.length > 0) {
+        // update the price in Stripe
+        logger.info(`Price has changed`);
+        await updateStripePrice(newProduct);
+      }
+
+      changes.forEach((change) => {
+        logger.info(
+          `Property ${change.property} has changed from ${change.oldValue} to ${change.newValue}`
+        );
+      });
+    } else {
+      logger.info("No Stripe updates required.");
+    }
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error processing MODIFY event: ${err.message}`);
+    throw new Error(`Error processing MODIFY event: ${err.message}`);
+  }
+}
+
+async function processRemove(record: DynamoDBRecord) {
+  logger.info(`REMOVE event: ${JSON.stringify(record.dynamodb)}`);
+}
 
 async function getStripeSecretKey() {
   const ssmClient = new SSMClient({ region: process.env.AWS_REGION });
@@ -97,38 +196,117 @@ async function getStripeClient() {
 async function createStripeProductId({
   name,
   description,
-}: {
-  name: string;
-  description: string;
-}) {
+}: StripeProductInput): Promise<string> {
   if (!name || !description) {
     return Promise.reject("Name and description are required");
   }
 
-  const stripe = await getStripeClient();
+  try {
+    const stripe = await getStripeClient();
 
-  const stripeProduct = await stripe.products.create({ name, description });
+    const stripeProduct = await stripe.products.create({ name, description });
 
-  return stripeProduct.id;
+    return stripeProduct.id;
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error creating Stripe product: ${err.message}`);
+    throw new Error(`Error creating Stripe product: ${err.message}`);
+  }
 }
 
-async function createStripePriceId(input: {
-  stripeProductId: string;
-  price: number;
-}) {
+async function createStripePriceId(input: StripePriceInput): Promise<string> {
   if (!input.price) {
     return Promise.reject("Price is required");
   }
 
-  const stripe = await getStripeClient();
+  try {
+    const stripe = await getStripeClient();
 
-  const stripePrice = await stripe.prices.create({
-    product: input.stripeProductId,
-    unit_amount: input.price, // in cents
-    currency: "usd",
-  });
+    const stripePrice = await stripe.prices.create({
+      product: input.stripeProductId,
+      unit_amount: input.price, // in cents
+      currency: "usd",
+    });
 
-  return stripePrice.id;
+    return stripePrice.id;
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error creating Stripe price: ${err.message}`);
+    throw new Error(`Error creating Stripe price: ${err.message}`);
+  }
+}
+
+async function updateStripeProduct(product: Record<string, any>) {
+  try {
+    const stripe = await getStripeClient();
+    const stripeProduct = await stripe.products.update(
+      product.stripeProductId,
+      {
+        name: product.name,
+        description: product.description,
+        active: product.isActive,
+      }
+    );
+    logger.info(`Updated Stripe product: ${JSON.stringify(stripeProduct)}`);
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error updating Stripe product: ${err.message}`);
+    throw new Error(`Error updating Stripe product: ${err.message}`);
+  }
+}
+
+async function updateStripePrice(product: Record<string, any>) {
+  // With the Stripe API, you can't update the price directly. You have to create a new price and then update the product to use the new price. But we don't want to have multiple price objects with the same value and for the same product. So we check if a price with the same value already exists and use that instead of creating a new price.
+  // Right now our simple store only supports a single price per product.
+  try {
+    const stripe = await getStripeClient();
+
+    // Check for existing prices with the same value.
+    const existingPrices = await stripe.prices.list({
+      product: product.stripeProductId,
+      active: true,
+    });
+
+    let newStripePrice;
+    const existingPrice = existingPrices.data.find(
+      (price) => price.unit_amount === product.price && price.currency === "usd"
+    );
+
+    if (existingPrice) {
+      newStripePrice = existingPrice;
+      logger.info(
+        `Found existing Stripe price: ${JSON.stringify(newStripePrice)}`
+      );
+    } else {
+      // Create a new price if no existing price matches.
+      newStripePrice = await stripe.prices.create({
+        product: product.stripeProductId,
+        unit_amount: product.price, // in cents
+        currency: "usd",
+      });
+      logger.info(
+        `Created new Stripe price: ${JSON.stringify(newStripePrice)}`
+      );
+    }
+
+    // Deactivate the old price
+    const stripePrice = await stripe.prices.update(product.stripePriceId, {
+      active: false,
+    });
+
+    logger.info(`Deactivated old Stripe price: ${JSON.stringify(stripePrice)}`);
+
+    // Update the product to use the new price
+    await updateProductWithStripeIds(
+      product.id,
+      product.stripeProductId,
+      newStripePrice.id
+    );
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error updating Stripe price: ${err.message}`);
+    throw new Error(`Error updating Stripe price: ${err.message}`);
+  }
 }
 
 async function updateProductWithStripeIds(
@@ -148,5 +326,29 @@ async function updateProductWithStripeIds(
   };
 
   const command = new UpdateItemCommand(params);
-  await dynamoDBClient.send(command);
+
+  try {
+    await dynamoDBClient.send(command);
+    logger.info(`Updated product ${productId} with Stripe IDs`);
+  } catch (error) {
+    const err = error as Error;
+    logger.error(`Error updating product with Stripe IDs: ${err.message}`);
+    throw new Error(`Error updating product with Stripe IDs: ${err.message}`);
+  }
+}
+
+// return a list of fields that differ between objects
+function checkForChanges(
+  newObj: Record<string, any>,
+  oldObj: Record<string, any>,
+  properties: string[]
+) {
+  return properties
+    .map((property) => ({
+      property,
+      oldValue: oldObj[property],
+      newValue: newObj[property],
+      hasChanged: oldObj[property] !== newObj[property],
+    }))
+    .filter((change) => change.hasChanged);
 }
