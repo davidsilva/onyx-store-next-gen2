@@ -1,9 +1,9 @@
 import UserProfile from "@/components/UserProfile";
 
-const UserProfilePage = () => {
+const UserProfilePage = ({ params }: { params: { id: string } }) => {
   return (
     <div>
-      <UserProfile />
+      <UserProfile id={params.id} />
     </div>
   );
 };
