@@ -25,32 +25,32 @@ export const auth = defineAuth({
   About custom attributes: https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html#user-pool-settings-custom-attributes
 
   */
-  userAttributes: {
-    preferredUsername: {
-      mutable: true,
-      required: false,
-    },
-    givenName: {
-      mutable: true,
-      required: false,
-    },
-    middleName: {
-      mutable: true,
-      required: false,
-    },
-    familyName: {
-      mutable: true,
-      required: false,
-    },
-    birthdate: {
-      mutable: true,
-      required: false,
-    },
-    // "custom:catCount": {
-    //   dataType: "Number",
-    //   mutable: true,
-    // },
-  },
+  // userAttributes: {
+  //   preferredUsername: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   givenName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   middleName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   familyName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   birthdate: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   // "custom:catCount": {
+  //   //   dataType: "Number",
+  //   //   mutable: true,
+  //   // },
+  // },
 
   groups: ["Admins"],
 });
