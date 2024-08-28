@@ -66,7 +66,7 @@ const ProductForm = ({
         isActive: product.isActive || false,
       });
     }
-  }, [product]);
+  }, [product, reset]);
 
   useEffect(() => {
     // If the image selected as main image is removed, reset the main image selection
@@ -77,7 +77,7 @@ const ProductForm = ({
       console.log("resetting main image");
       setValue("mainImageS3Key", "");
     }
-  }, [images]);
+  }, [images, getValues, setValue]);
 
   return (
     <>
