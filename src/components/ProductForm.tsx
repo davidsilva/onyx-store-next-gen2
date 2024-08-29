@@ -11,7 +11,7 @@ import {
 } from "@aws-amplify/ui-react";
 import ImageUploader from "./ImageUploader";
 import { Product, Image } from "@/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
   price: string;
@@ -40,6 +40,9 @@ const ProductForm = ({
   setImages,
   onSubmit,
 }: ProductFormProps) => {
+  // Manage the isActive checkbox state independently within the ProductForm component, avoiding conflicts between the checked attribute and the onChange handler
+  const [isActive, setIsActive] = useState(product?.isActive ?? false);
+
   const {
     register,
     handleSubmit,
@@ -55,6 +58,10 @@ const ProductForm = ({
       mainImageS3Key: "",
     },
   });
+
+  useEffect(() => {
+    setIsActive(product?.isActive ?? false);
+  }, [product]);
 
   useEffect(() => {
     if (product) {
@@ -78,6 +85,8 @@ const ProductForm = ({
       setValue("mainImageS3Key", "");
     }
   }, [images, getValues, setValue]);
+
+  console.log("product?.isActive:", product?.isActive);
 
   return (
     <>
@@ -147,15 +156,16 @@ const ProductForm = ({
         <div>
           <CheckboxField
             {...register("isActive")}
-            checked={product?.isActive ?? false}
+            checked={isActive}
             label="Is Active"
             onChange={(e) => {
-              const isActive = e.currentTarget.checked;
+              const newIsActive = e.currentTarget.checked;
+              setIsActive(newIsActive);
               setProduct((prevProduct) => {
                 if (prevProduct) {
                   return {
                     ...prevProduct,
-                    isActive,
+                    isActive: newIsActive,
                   };
                 }
                 return prevProduct;
