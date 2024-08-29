@@ -22,7 +22,7 @@ export default async function RootLayout({
         <ClientSetupContextProvider>
           <NavBar className="p-2 bg-gray-800 text-white sticky top-0 z-50 mb-12" />
           <div className="flex justify-center">
-            <div className="w-4/5 max-w-3xl">{children}</div>
+            <div className="w-4/5 max-w-7xl">{children}</div>
           </div>
         </ClientSetupContextProvider>
       </body>
