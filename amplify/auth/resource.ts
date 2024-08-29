@@ -12,6 +12,7 @@ export const auth = defineAuth({
   triggers: {
     postConfirmation,
   },
+  groups: ["Admins", "Users"],
   /*   
   If a user attribute is marked as required, it cannot later be changed to not required.
   https://docs.amplify.aws/nextjs/build-a-backend/auth/concepts/user-attributes/ So, unless you really need the attribute for a functional reason, it's probably best to leave it as not required. As you can see in AuthenticatorClient, the Amplify Authenticator component can be customized to require various fields to be filled out at sign-up -- separately from the definition of attributes in Cognito.
@@ -51,6 +52,4 @@ export const auth = defineAuth({
   //   //   mutable: true,
   //   // },
   // },
-
-  groups: ["Admins"],
 });
