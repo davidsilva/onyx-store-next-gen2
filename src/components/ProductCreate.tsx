@@ -12,7 +12,7 @@ import { Card, Alert } from "@aws-amplify/ui-react";
 import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import clearCachesByServerAction from "@/actions/revalidate";
-import { Product, Image } from "@/types";
+import { Product, ProductImage, Message } from "@/types";
 import ProductForm from "./ProductForm";
 import { convertPriceToCentsInteger } from "@/utils/util";
 
@@ -27,18 +27,13 @@ type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
 //   mainImageS3Key: string | null;
 // };
 
-type Message = {
-  type: "error" | "success";
-  content: string;
-};
-
 const client = generateClient<Schema>({
   authMode: "userPool",
 });
 
 const ProductCreate = () => {
   const [product, setProduct] = useState<Product | null>(null);
-  const [images, setImages] = useState<Image[]>([]);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
 
   const onSubmit = async (data: FormData) => {

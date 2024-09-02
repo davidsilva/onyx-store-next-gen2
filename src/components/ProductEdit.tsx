@@ -5,7 +5,7 @@ import { Card, Alert, Text } from "@aws-amplify/ui-react";
 import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
 import clearCachesByServerAction from "@/actions/revalidate";
-import { Product, Image } from "@/types";
+import { Product, ProductImage } from "@/types";
 import ProductForm from "./ProductForm";
 import { convertPriceToCentsInteger } from "@/utils/util";
 
@@ -27,7 +27,7 @@ interface ProductUpdateProps {
 }
 
 const ProductUpdate = ({ id }: ProductUpdateProps) => {
-  const [images, setImages] = useState<Image[]>([]);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
 

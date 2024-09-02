@@ -4,11 +4,11 @@ import { Text, TextField, Card, Grid, Button } from "@aws-amplify/ui-react";
 import { StorageImage, StorageManager } from "@aws-amplify/ui-react-storage";
 import _ from "lodash";
 import { useCallback, useState, useEffect } from "react";
-import { Nullable, Product, Image } from "@/types";
+import { Nullable, Product, ProductImage } from "@/types";
 
 interface ImageUploaderProps {
-  setImages: React.Dispatch<React.SetStateAction<Image[]>>;
-  images: Image[];
+  setImages: React.Dispatch<React.SetStateAction<ProductImage[]>>;
+  images: ProductImage[];
   maxImages?: number;
 }
 
@@ -33,7 +33,7 @@ const ImageUploader = ({
   }, [images]);
 
   const debouncedUpdateAlt = _.debounce((s3Key: string, value: string) => {
-    setImages((prevImages: Image[]) =>
+    setImages((prevImages: ProductImage[]) =>
       prevImages.map((image) =>
         image.s3Key === s3Key ? { ...image, alt: value } : image
       )
@@ -53,7 +53,7 @@ const ImageUploader = ({
 
   const handleRemoveImage = (s3Key: Nullable<string>) => {
     console.log("handleRemoveImage", s3Key);
-    setImages((prevImages: Image[]) =>
+    setImages((prevImages: ProductImage[]) =>
       prevImages.filter((image, idx) => image.s3Key !== s3Key)
     );
   };
@@ -103,7 +103,7 @@ const ImageUploader = ({
             console.log("onUploadSuccess result", result);
             const s3Key = result.key;
             if (s3Key) {
-              setImages((prevImages: Image[]) => {
+              setImages((prevImages: ProductImage[]) => {
                 const imageExists = prevImages.some(
                   (image) => image.s3Key === s3Key
                 );
@@ -121,7 +121,7 @@ const ImageUploader = ({
           onFileRemove={({ key }) => {
             console.log("onFileRemove in StorageManager key", key);
             if (key) {
-              setImages((prevImages: Image[]) =>
+              setImages((prevImages: ProductImage[]) =>
                 prevImages.filter((image) => image.s3Key !== key)
               );
             }

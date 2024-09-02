@@ -10,7 +10,7 @@ import {
   CheckboxField,
 } from "@aws-amplify/ui-react";
 import ImageUploader from "./ImageUploader";
-import { Product, Image } from "@/types";
+import { Product, ProductImage } from "@/types";
 import { useEffect, useState } from "react";
 
 type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
@@ -20,8 +20,8 @@ type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
 type ProductFormProps = {
   product: Product | null;
   setProduct: React.Dispatch<React.SetStateAction<Product | null>>;
-  images: Image[];
-  setImages: React.Dispatch<React.SetStateAction<Image[]>>;
+  images: ProductImage[];
+  setImages: React.Dispatch<React.SetStateAction<ProductImage[]>>;
   onSubmit: SubmitHandler<FormData>;
 };
 
