@@ -16,6 +16,7 @@ export default async function Home() {
         "mainImageS3Key",
         "isArchived",
         "images.*",
+        "reviews.*",
       ],
     });
 
