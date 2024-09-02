@@ -67,7 +67,11 @@ const schema = a
         profileOwner: a.string(),
         reviews: a.hasMany("Review", "userId"),
       })
-      .secondaryIndexes((index) => [index("username"), index("email")])
+      .secondaryIndexes((index) => [
+        index("username"),
+        index("email"),
+        index("userId"),
+      ])
       .authorization((allow) => [
         allow.ownerDefinedIn("profileOwner").to(["read", "update"]),
         allow.group("Admins"),

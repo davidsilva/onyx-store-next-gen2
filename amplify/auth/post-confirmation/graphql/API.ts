@@ -761,6 +761,37 @@ export type ListUserProfileByEmailQuery = {
   } | null,
 };
 
+export type ListUserProfileByUserIdQueryVariables = {
+  filter?: ModelUserProfileFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  sortDirection?: ModelSortDirection | null,
+  userId: string,
+};
+
+export type ListUserProfileByUserIdQuery = {
+  listUserProfileByUserId?:  {
+    __typename: "ModelUserProfileConnection",
+    items:  Array< {
+      __typename: "UserProfile",
+      birthdate?: string | null,
+      createdAt: string,
+      email: string,
+      familyName?: string | null,
+      givenName?: string | null,
+      id: string,
+      middleName?: string | null,
+      preferredUsername?: string | null,
+      profileOwner?: string | null,
+      profilePicture?: string | null,
+      updatedAt: string,
+      userId: string,
+      username: string,
+    } | null >,
+    nextToken?: string | null,
+  } | null,
+};
+
 export type ListUserProfileByUsernameQueryVariables = {
   filter?: ModelUserProfileFilterInput | null,
   limit?: number | null,

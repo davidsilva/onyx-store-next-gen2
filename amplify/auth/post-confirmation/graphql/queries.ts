@@ -283,6 +283,44 @@ export const listUserProfileByEmail = /* GraphQL */ `query ListUserProfileByEmai
   APITypes.ListUserProfileByEmailQueryVariables,
   APITypes.ListUserProfileByEmailQuery
 >;
+export const listUserProfileByUserId = /* GraphQL */ `query ListUserProfileByUserId(
+  $filter: ModelUserProfileFilterInput
+  $limit: Int
+  $nextToken: String
+  $sortDirection: ModelSortDirection
+  $userId: ID!
+) {
+  listUserProfileByUserId(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    sortDirection: $sortDirection
+    userId: $userId
+  ) {
+    items {
+      birthdate
+      createdAt
+      email
+      familyName
+      givenName
+      id
+      middleName
+      preferredUsername
+      profileOwner
+      profilePicture
+      updatedAt
+      userId
+      username
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListUserProfileByUserIdQueryVariables,
+  APITypes.ListUserProfileByUserIdQuery
+>;
 export const listUserProfileByUsername = /* GraphQL */ `query ListUserProfileByUsername(
   $filter: ModelUserProfileFilterInput
   $limit: Int
