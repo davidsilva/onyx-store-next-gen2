@@ -68,10 +68,18 @@ const ProductItemControls = ({
     }
   };
 
+  const handleReview = () => {
+    router.push(`/reviews/${id}/new`);
+  };
+
   return (
     <div className="flex gap-2">
       <button className="btn btn-blue">Add to Cart</button>
-      {isSignedIn && <button className="btn btn-blue">Add Review</button>}
+      {isSignedIn && (
+        <button className="btn btn-blue" onClick={handleReview}>
+          Add Review
+        </button>
+      )}
       {isAdmin && (
         <>
           <button className="btn btn-blue" onClick={handleEdit}>
