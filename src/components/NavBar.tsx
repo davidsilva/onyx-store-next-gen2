@@ -34,9 +34,23 @@ export default function NavBar({ className }: NavBarProps) {
 
   useEffect(() => {
     const fetchUserDisplayName = async () => {
-      const result = await client.models.UserProfile.listUserProfileByUsername({
-        username: user.username,
+      console.log("fetchUserDisplayName user", user);
+      const result = await client.models.UserProfile.listUserProfileByUsername(
+        { username: user.username },
+        { authMode: "userPool" }
+      );
+
+      const resultList = await client.models.UserProfile.list({
+        authMode: "userPool",
       });
+      console.log("fetchUserDisplayName resultList", resultList);
+
+      console.log("fetchUserDisplayName result", result);
+
+      if (!result.data || result.data.length === 0) {
+        setUserDisplayName(user.username);
+        return;
+      }
       setUserDisplayName(
         result.data[0].preferredUsername ||
           result.data[0].email ||
@@ -49,7 +63,7 @@ export default function NavBar({ className }: NavBarProps) {
     } else {
       setUserDisplayName(null);
     }
-  }, [authStatus, user]);
+  }, [authStatus, user, isAuthenticated]);
 
   const router = useRouter();
 
@@ -93,7 +107,11 @@ export default function NavBar({ className }: NavBarProps) {
           ))}
         </Flex>
         <Flex gap="1rem" alignItems="center">
-          {userDisplayName && <Flex>{userDisplayName}</Flex>}
+          {userDisplayName && (
+            <Flex>
+              <Link href={`/user/${user.userId}`}>{userDisplayName}</Link>
+            </Flex>
+          )}
           <Button
             variation="primary"
             borderRadius="2rem"
