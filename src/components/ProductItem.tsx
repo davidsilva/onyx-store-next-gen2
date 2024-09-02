@@ -1,9 +1,10 @@
 import ProductItemControls from "@/components/ProductItemControls";
 import ImageComponent from "@/components/Image";
-import { Product } from "@/types";
+import { ProductWithReviews } from "@/types";
+import Link from "next/link";
 
 interface ProductItemProps {
-  product: Product;
+  product: ProductWithReviews;
   isSignedIn: boolean;
 }
 
@@ -46,7 +47,9 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
         </div>
       )}
       <div>
-        <h2 className="text-xl font-bold">{product.name}</h2>
+        <h2 className="text-xl font-bold">
+          <Link href={`/products/${product.id}`}>{product.name}</Link>
+        </h2>
         <p>{product.id}</p>
         <p>{product.description}</p>
         <p>
@@ -55,6 +58,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
             currency: "USD",
           })}
         </p>
+        <p>Reviews: {product.reviews?.length || 0}</p>
         <ProductItemControls product={product} isSignedIn={isSignedIn} />
       </div>
     </div>
