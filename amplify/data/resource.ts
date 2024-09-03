@@ -39,6 +39,7 @@ const schema = a
 
     Review: a
       .model({
+        title: a.string().required(),
         rating: a.integer().required(),
         content: a.string().required(),
         productId: a.id(),
@@ -55,10 +56,31 @@ const schema = a
 
     UserProfile: a
       .model({
-        userId: a.id().required(),
-        username: a.string().required(),
+        userId: a
+          .id()
+          .required()
+          .authorization((allow) => [
+            allow.owner().to(["read"]),
+            allow.group("Admins").to(["read"]),
+            allow.authenticated().to(["read"]),
+            allow.guest().to(["read"]),
+          ]),
+        username: a
+          .string()
+          .required()
+          .authorization((allow) => [
+            allow.owner().to(["read"]),
+            allow.group("Admins").to(["read"]),
+            allow.authenticated().to(["read"]),
+            allow.guest().to(["read"]),
+          ]),
         preferredUsername: a.string(),
-        email: a.string().required(),
+        email: a
+          .string()
+          .authorization((allow) => [
+            allow.owner().to(["read"]),
+            allow.group("Admins"),
+          ]),
         birthdate: a.date(),
         givenName: a.string(),
         middleName: a.string(),
