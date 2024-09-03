@@ -64,7 +64,15 @@ const schema = a
         middleName: a.string(),
         familyName: a.string(),
         profilePicture: a.string(),
-        profileOwner: a.string(),
+        // We don't want people to change ownership of their profile
+        profileOwner: a
+          .string()
+          .authorization((allow) => [
+            allow.owner().to(["read"]),
+            allow.group("Admins"),
+            allow.authenticated().to(["read"]),
+            allow.guest().to(["read"]),
+          ]),
         reviews: a.hasMany("Review", "userId"),
       })
       .secondaryIndexes((index) => [
@@ -77,6 +85,7 @@ const schema = a
         allow.group("Admins"),
         allow.guest().to(["read"]),
         allow.authenticated().to(["read"]),
+        allow.owner().to(["read", "create", "update"]),
       ]),
 
     // sets isArchived to true by default, false if "archive" is false
