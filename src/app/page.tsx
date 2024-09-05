@@ -20,9 +20,9 @@ export default async function Home() {
       ],
     });
 
-    console.log("products", products);
     console.log("errors", errors);
     products = data;
+    console.log("products Product.list", products);
   } catch (error) {
     console.error("error", error);
   }
