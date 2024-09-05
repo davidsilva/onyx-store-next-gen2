@@ -9,6 +9,7 @@ import ReviewForm from "./ReviewForm";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 
 type FormData = {
+  title: string;
   rating: string;
   content: string;
 };
@@ -35,6 +36,7 @@ const ReviewCreate = ({ productId }: { productId: string }) => {
   const onSubmit = async (data: FormData) => {
     try {
       const result = await client.models.Review.create({
+        title: data.title,
         rating: parseInt(data.rating, 10),
         content: data.content,
         productId: productId,
