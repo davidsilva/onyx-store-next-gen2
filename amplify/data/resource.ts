@@ -47,6 +47,7 @@ const schema = a
         userId: a.id(),
         user: a.belongsTo("UserProfile", "userId"),
       })
+      .secondaryIndexes((index) => [index("productId"), index("userId")])
       .authorization((allow) => [
         allow.guest().to(["read"]),
         allow.authenticated().to(["read"]),
@@ -56,25 +57,11 @@ const schema = a
 
     UserProfile: a
       .model({
-        userId: a
-          .id()
-          .required()
-          .authorization((allow) => [
-            allow.owner().to(["read"]),
-            allow.group("Admins").to(["read"]),
-            allow.authenticated().to(["read"]),
-            allow.guest().to(["read"]),
-          ]),
-        username: a
-          .string()
-          .required()
-          .authorization((allow) => [
-            allow.owner().to(["read"]),
-            allow.group("Admins").to(["read"]),
-            allow.authenticated().to(["read"]),
-            allow.guest().to(["read"]),
-          ]),
+        userId: a.id().required(),
+        username: a.string().required(),
         preferredUsername: a.string(),
+        // We don't want people to change their email directly in the db. Better if we allow them to change it via Cognito, and then update it in the db using a Lambda function.
+        // Also, we don't want other people to see other people's email addresses.
         email: a
           .string()
           .authorization((allow) => [
@@ -92,8 +79,8 @@ const schema = a
           .authorization((allow) => [
             allow.owner().to(["read"]),
             allow.group("Admins"),
-            allow.authenticated().to(["read"]),
             allow.guest().to(["read"]),
+            allow.authenticated().to(["read"]),
           ]),
         reviews: a.hasMany("Review", "userId"),
       })
