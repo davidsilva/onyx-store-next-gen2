@@ -39,6 +39,18 @@ export type Review = Omit<
   "product" | "user" | "updatedAt" | "createdAt" | "id"
 >;
 
+export type ReviewItem = {
+  id: string;
+  title: string;
+  content: string;
+  rating: number;
+  productId?: string | null;
+  productName?: string;
+  preferredUsername?: string;
+  userId?: string | null;
+  createdAt: string;
+};
+
 export type Message = {
   type: "error" | "success";
   content: string;
