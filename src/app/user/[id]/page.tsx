@@ -1,4 +1,6 @@
-import { getUserProfile, UserProfileData } from "@/actions/getUserProfile";
+import { getUserProfile } from "@/actions/getUserProfile";
+import { getReviewsForUserProfile } from "@/actions/getReviewsForUserProfile";
+import ReviewItem from "@/components/ReviewItem";
 
 interface UserProfilePageProps {
   params: { id: string };
@@ -10,17 +12,20 @@ const UserProfilePage = async ({ params }: UserProfilePageProps) => {
   if (!userProfileData) {
     return <p>User not found</p>;
   }
+
+  const reviews = await getReviewsForUserProfile(params.id);
+  console.log("reviews", reviews);
+
   return (
     <div>
-      <h1>User Profile</h1>
+      <h1 className="text-3xl font-bold text-gray-800">User Profile</h1>
       <p>
         <strong>Username:</strong> {userProfileData.preferredUsername}
       </p>
       <p>
-        <strong>Email:</strong> {userProfileData.email}
+        <strong>Email:</strong>{" "}
+        {userProfileData.email || "Visible only to profile owner"}
       </p>
-      {/* preferredUsername: string; email: string; givenName: string;
-      middleName?: string; familyName: string; birthdate: string; */}
       <p>
         <strong>First Name: </strong>
         {userProfileData.givenName}
@@ -37,6 +42,23 @@ const UserProfilePage = async ({ params }: UserProfilePageProps) => {
         <strong>Birthdate: </strong>
         {userProfileData.birthdate}
       </p>
+      <h2 className="text-2xl font-bold text-gray-800">
+        Reviews by {userProfileData.preferredUsername}
+      </h2>
+      {!reviews || reviews.length === 0 ? (
+        <p>No reviews yet</p>
+      ) : (
+        <div>
+          {reviews.map((review) => (
+            <div key={review.id}>
+              <ReviewItem
+                review={review}
+                currentUser={{ userId: userProfileData.userId }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
