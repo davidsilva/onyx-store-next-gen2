@@ -14,6 +14,15 @@ export const { runWithAmplifyServerContext } = createServerRunner({
   config: outputs,
 });
 
+export const getCurrentUserServer = async () => {
+  return await runWithAmplifyServerContext({
+    nextServerContext: { cookies },
+    async operation(contextSpec) {
+      return await getCurrentUser(contextSpec);
+    },
+  });
+};
+
 export const checkIsAuthenticated = async (): Promise<boolean> => {
   return await runWithAmplifyServerContext({
     nextServerContext: { cookies },
