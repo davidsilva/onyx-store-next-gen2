@@ -69,7 +69,7 @@ const ProductItemControls = ({
   };
 
   const handleReview = () => {
-    router.push(`/reviews/${id}/new`);
+    router.push(`/reviews/product/${id}/new`);
   };
 
   return (

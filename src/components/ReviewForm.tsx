@@ -10,6 +10,7 @@ import {
   SelectField,
   CheckboxField,
 } from "@aws-amplify/ui-react";
+import { useEffect } from "react";
 
 type FormData = {
   title: string;
@@ -40,10 +41,19 @@ const ReviewForm = ({
     setValue,
   } = useForm<FormData>({
     defaultValues: {
+      title: "",
       rating: "",
       content: "",
     },
   });
+
+  useEffect(() => {
+    if (review) {
+      setValue("title", review.title);
+      setValue("rating", review.rating.toString());
+      setValue("content", review.content);
+    }
+  }, [review]);
 
   return (
     <>

@@ -1,5 +1,6 @@
 import { ReviewItem as ReviewItemType } from "@/types";
 import Link from "next/link";
+import ReviewItemControls from "./ReviewItemControls";
 
 type ReviewItemProps = {
   review: ReviewItemType;
@@ -49,7 +50,7 @@ const ReviewItem = ({ review, currentUser }: ReviewItemProps) => {
       <p className="text-lg">{review.content}</p>
       <p>{formattedDate}</p>
       {currentUser && currentUser.userId === review.userId && (
-        <button className="btn btn-blue">Edit</button>
+        <ReviewItemControls reviewId={review.id} />
       )}
     </div>
   );
