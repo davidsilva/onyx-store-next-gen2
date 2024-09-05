@@ -1,10 +1,20 @@
 import { cookieBasedClient } from "@/utils/amplify-utils";
-import { checkIsAuthenticated } from "@/utils/amplify-utils";
-import { type Schema } from "@/../amplify/data/resource";
+import {
+  checkIsAuthenticated,
+  getCurrentUserServer,
+} from "@/utils/amplify-utils";
 import ImageCarousel from "@/components/ImageCarousel";
+import { getUserProfile } from "@/actions/getUserProfile";
+import { AuthUser } from "aws-amplify/auth";
+import ReviewItem from "@/components/ReviewItem";
 
 const ProductDetailPage = async ({ params }: { params: { id: string } }) => {
+  let currentUser: AuthUser | null = null;
   const isSignedIn = await checkIsAuthenticated();
+  if (isSignedIn) {
+    currentUser = await getCurrentUserServer();
+  }
+  console.log("currentUser", currentUser);
   let product;
   try {
     const { data, errors } = await cookieBasedClient.models.Product.get(
@@ -20,14 +30,35 @@ const ProductDetailPage = async ({ params }: { params: { id: string } }) => {
           "isArchived",
           "images.*",
           "reviews.*",
+          "reviews.user.*",
         ],
       }
     );
-    console.log("data", data);
+    console.log("cookieBasedClient.models.Product.get data", data);
     product = data;
   } catch (error) {
     console.error("error", error);
   }
+
+  const reviewsWithUserProfiles = await Promise.all(
+    product?.reviews?.map(async (review) => {
+      console.log("review", review);
+      if (review?.userId) {
+        const userProfile = await getUserProfile(review.userId);
+        return {
+          ...review,
+          user: userProfile,
+        };
+      } else {
+        return {
+          ...review,
+          user: null,
+        };
+      }
+    }) || []
+  );
+
+  console.log("reviewsWithUserProfiles", reviewsWithUserProfiles);
 
   if (!product) {
     return <p>Product not found</p>;
@@ -55,17 +86,21 @@ const ProductDetailPage = async ({ params }: { params: { id: string } }) => {
       <div className="mt-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Reviews</h2>
         <div>
-          {product?.reviews.length === 0 && <p>No reviews</p>}
+          {reviewsWithUserProfiles.length === 0 && <p>No reviews</p>}
 
-          {product?.reviews.map((review) => (
-            <div
-              key={review.id}
-              className="border border-black rounded p-2 my-6"
-            >
-              <p>{review.content}</p>
-              <p>Rating: {review.rating}</p>
-            </div>
-          ))}
+          {reviewsWithUserProfiles.map((review) => {
+            const reviewItemData = {
+              ...review,
+              preferredUsername:
+                review.user?.preferredUsername || review.userId || "",
+              userId: review.userId || "",
+            };
+            return (
+              <div key={review.id}>
+                <ReviewItem review={reviewItemData} currentUser={currentUser} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </>
