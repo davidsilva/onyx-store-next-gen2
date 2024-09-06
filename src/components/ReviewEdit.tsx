@@ -4,7 +4,7 @@ import { generateClient } from "@aws-amplify/api";
 import { Card, Alert, Text } from "@aws-amplify/ui-react";
 import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
-import { type Review, type Message } from "@/types";
+import { type Review } from "@/types";
 import ReviewForm from "./ReviewForm";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { AsyncProcess, AsyncProcessStatus } from "@/types";
@@ -19,7 +19,11 @@ const client = generateClient<Schema>({ authMode: "userPool" });
 
 const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
   const [review, setReview] = useState<Review | null>(null);
-  const [message, setMessage] = useState<Message | null>(null);
+  const [reviewUpdateStatus, setReviewUpdateStatus] = useState<
+    AsyncProcess<void, Error>
+  >({
+    status: AsyncProcessStatus.NONE,
+  });
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingStatus, setLoadingStatus] = useState<
     AsyncProcess<Review, Error>
@@ -102,17 +106,19 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
 
       console.log("review create result", result);
 
-      setMessage({
-        type: "success",
-        content: "Review created successfully.",
+      setReviewUpdateStatus({
+        status: AsyncProcessStatus.SUCCESS,
+        value: undefined,
       });
     } catch (error) {
       console.error("error creating review", error);
 
-      setMessage({
-        type: "error",
-        content: "Error creating review.",
-      });
+      if (error instanceof Error) {
+        setReviewUpdateStatus({
+          status: AsyncProcessStatus.ERROR,
+          error: error,
+        });
+      }
     }
   };
 
@@ -137,18 +143,23 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
   return (
     <Card>
       <h1>Review Create</h1>
-      {message && <Alert variation={message.type}>{message.content}</Alert>}
-
-      {!message && review?.productId && (
-        <ReviewForm
-          onSubmit={onSubmit}
-          review={review}
-          setReview={setReview}
-          productId={review?.productId}
-          userId={userId}
-        />
+      {reviewUpdateStatus.status === AsyncProcessStatus.ERROR && (
+        <Alert variation="error">Error creating review</Alert>
       )}
-      {!message && !review?.productId && <Text>Product ID is missing.</Text>}
+
+      {reviewUpdateStatus.status === AsyncProcessStatus.NONE &&
+        review?.productId && (
+          <ReviewForm
+            onSubmit={onSubmit}
+            review={review}
+            setReview={setReview}
+            productId={review?.productId}
+            userId={userId}
+          />
+        )}
+
+      {reviewUpdateStatus.status === AsyncProcessStatus.NONE &&
+        !review?.productId && <Text>Product ID is missing.</Text>}
     </Card>
   );
 };
