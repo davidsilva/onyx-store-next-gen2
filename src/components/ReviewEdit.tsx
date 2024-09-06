@@ -7,6 +7,7 @@ import { type Schema } from "@/../amplify/data/resource";
 import { type Review, type Message } from "@/types";
 import ReviewForm from "./ReviewForm";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import { AsyncProcess, AsyncProcessStatus } from "@/types";
 
 type FormData = {
   title: string;
@@ -20,7 +21,11 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
   const [review, setReview] = useState<Review | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [productId, setProductId] = useState<string | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState<
+    AsyncProcess<Review, Error>
+  >({
+    status: AsyncProcessStatus.NONE,
+  });
   const { authStatus, user } = useAuthenticator((context) => [
     context.authStatus,
     context.user,
@@ -29,6 +34,7 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
 
   useEffect(() => {
     const fetchReview = async () => {
+      setLoadingStatus({ status: AsyncProcessStatus.PENDING });
       try {
         const result = await client.models.Review.get(
           { id: reviewId },
@@ -48,9 +54,26 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
         console.log("result", result);
         if (result.data) {
           setReview(result.data);
+          setLoadingStatus({
+            status: AsyncProcessStatus.SUCCESS,
+            value: result.data,
+          });
+        } else {
+          setLoadingStatus({
+            status: AsyncProcessStatus.ERROR,
+            error: new Error("Review not found"),
+          });
         }
       } catch (error) {
         console.error("error fetching review", error);
+        if (error instanceof Error) {
+          setLoadingStatus({ status: AsyncProcessStatus.ERROR, error: error });
+        } else {
+          setLoadingStatus({
+            status: AsyncProcessStatus.ERROR,
+            error: new Error("Error fetching review"),
+          });
+        }
       }
     };
 
@@ -93,14 +116,22 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
     }
   };
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !userId) {
     return (
       <Alert variation="error">You must be signed in to leave a review.</Alert>
     );
   }
 
-  if (!userId) {
+  if (loadingStatus.status === AsyncProcessStatus.PENDING) {
     return <Text>Loading...</Text>;
+  }
+
+  if (loadingStatus.status === AsyncProcessStatus.ERROR) {
+    return (
+      <Alert variation="error">
+        Error loading review: {loadingStatus.error?.message}
+      </Alert>
+    );
   }
 
   return (
