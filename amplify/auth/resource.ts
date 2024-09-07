@@ -30,30 +30,30 @@ export const auth = defineAuth({
   Commenting out (or removing) apparently does *not* remove the attribute from Cognito. I think this is a new addition to the docummentation: "User attributes that are used to identify your individual users (such as email and phone) cannot be renamed or deleted."
 
   */
-/*   userAttributes: {
-    preferredUsername: {
-      mutable: true,
-      required: false,
-    },
-    givenName: {
-      mutable: true,
-      required: false,
-    },
-    middleName: {
-      mutable: true,
-      required: false,
-    },
-    familyName: {
-      mutable: true,
-      required: false,
-    },
-    birthdate: {
-      mutable: true,
-      required: false,
-    },
- */    // "custom:catCount": {
-    //   dataType: "Number",
-    //   mutable: true,
-    // },
-  },
+  // userAttributes: {
+  //   preferredUsername: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   givenName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   middleName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   familyName: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   birthdate: {
+  //     mutable: true,
+  //     required: false,
+  //   },
+  //   // "custom:catCount": {
+  //   //   dataType: "Number",
+  //   //   mutable: true,
+  //   // },
+  // },
 });
