@@ -4,9 +4,10 @@ import { generateClient } from "@aws-amplify/api";
 import { Card, Alert, Text } from "@aws-amplify/ui-react";
 import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
-import { type Review, type Message } from "@/types";
+import { type Review, type Message, ProductWithReviews } from "@/types";
 import ReviewForm from "./ReviewForm";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import ProductItem from "./ProductItem";
 
 type FormData = {
   title: string;
@@ -18,6 +19,7 @@ const client = generateClient<Schema>({ authMode: "userPool" });
 
 const ReviewCreate = ({ productId }: { productId: string }) => {
   const [review, setReview] = useState<Review | null>(null);
+  const [product, setProduct] = useState<ProductWithReviews | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const { authStatus, user } = useAuthenticator((context) => [
@@ -29,9 +31,40 @@ const ReviewCreate = ({ productId }: { productId: string }) => {
   useEffect(() => {
     if (authStatus !== "configuring") {
       setIsAuthenticated(authStatus === "authenticated");
-      setUserId(user.userId);
+
+      if (authStatus === "authenticated") {
+        setUserId(user.userId);
+      }
     }
   }, [authStatus, user]);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      console.log("fetchProduct productId", productId);
+      const result = await client.models.Product.get(
+        { id: productId },
+        {
+          selectionSet: [
+            "id",
+            "name",
+            "description",
+            "price",
+            "images.*",
+            "isActive",
+            "mainImageS3Key",
+            "reviews.*",
+          ],
+        }
+      );
+
+      console.log("fetchProduct result", result);
+      setProduct(result.data);
+    };
+
+    if (authStatus === "authenticated") {
+      fetchProduct();
+    }
+  }, [authStatus, productId]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -71,7 +104,13 @@ const ReviewCreate = ({ productId }: { productId: string }) => {
 
   return (
     <Card>
-      <h1>Review Create</h1>
+      {product && (
+        <ProductItem
+          product={product}
+          isSignedIn={isAuthenticated}
+          showControls={false}
+        />
+      )}
       {message ? (
         <Alert variation={message.type}>{message.content}</Alert>
       ) : (
