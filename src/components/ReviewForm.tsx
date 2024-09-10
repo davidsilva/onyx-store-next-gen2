@@ -74,11 +74,11 @@ const ReviewForm = ({
             errorMessage={errors.rating?.message}
             onChange={(e) => {
               const rating = parseInt(e.target.value, 10);
-              setReview((prevRating) => {
-                if (prevRating) {
-                  return { ...prevRating, rating };
+              setReview((prevReview) => {
+                if (prevReview) {
+                  return { ...prevReview, rating };
                 }
-                return { rating, title: "", content: "", productId, userId };
+                return prevReview;
               });
             }}
           >
