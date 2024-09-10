@@ -46,7 +46,14 @@ const ReviewItem = ({ review, currentUser }: ReviewItemProps) => {
       <h3 className="text-lg font-bold">
         {renderStars(review.rating)} {review.title}
       </h3>
-      {review.preferredUsername && <p>By: {review.preferredUsername}</p>}
+      {review.preferredUsername && (
+        <p>
+          By:{" "}
+          <Link href={`/user/${review.userId}`}>
+            {review.preferredUsername}
+          </Link>
+        </p>
+      )}
       <p className="text-lg">{review.content}</p>
       <p>{formattedDate}</p>
       {currentUser && currentUser.userId === review.userId && (
