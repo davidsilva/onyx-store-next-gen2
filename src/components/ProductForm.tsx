@@ -86,8 +86,6 @@ const ProductForm = ({
     }
   }, [images, getValues, setValue]);
 
-  console.log("product?.isActive:", product?.isActive);
-
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
