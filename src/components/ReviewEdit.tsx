@@ -4,10 +4,11 @@ import { generateClient } from "@aws-amplify/api";
 import { Card, Alert, Text } from "@aws-amplify/ui-react";
 import { useState, useEffect } from "react";
 import { type Schema } from "@/../amplify/data/resource";
-import { type Review } from "@/types";
+import { ProductWithReviews, type Review } from "@/types";
 import ReviewForm from "./ReviewForm";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { AsyncProcess, AsyncProcessStatus } from "@/types";
+import ProductItem from "./ProductItem";
 
 type FormData = {
   title: string;
@@ -18,6 +19,7 @@ type FormData = {
 const client = generateClient<Schema>({ authMode: "userPool" });
 
 const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
+  const [product, setProduct] = useState<ProductWithReviews | null>(null);
   const [review, setReview] = useState<Review | null>(null);
   const [reviewUpdateStatus, setReviewUpdateStatus] = useState<
     AsyncProcess<void, Error>
@@ -81,13 +83,44 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
       }
     };
 
-    if (authStatus !== "configuring") {
+    if (authStatus === "authenticated") {
       setIsAuthenticated(authStatus === "authenticated");
       setUserId(user.userId);
 
       fetchReview();
     }
   }, [authStatus, user, reviewId]);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      console.log("fetchProduct productId", review?.productId);
+      if (!review?.productId) {
+        return;
+      }
+      const result = await client.models.Product.get(
+        { id: review.productId },
+        {
+          selectionSet: [
+            "id",
+            "name",
+            "description",
+            "price",
+            "images.*",
+            "isActive",
+            "mainImageS3Key",
+            "reviews.*",
+          ],
+        }
+      );
+
+      console.log("fetchProduct result", result);
+      setProduct(result.data);
+    };
+
+    if (review && review.productId) {
+      fetchProduct();
+    }
+  }, [review]);
 
   const onSubmit = async (data: FormData) => {
     if (!review || !userId) {
@@ -142,9 +175,23 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
 
   return (
     <Card>
-      <h1>Review Create</h1>
       {reviewUpdateStatus.status === AsyncProcessStatus.ERROR && (
         <Alert variation="error">Error creating review</Alert>
+      )}
+
+      {reviewUpdateStatus.status === AsyncProcessStatus.SUCCESS && (
+        <Alert variation="success">Review updated successfully.</Alert>
+      )}
+
+      {reviewUpdateStatus.status === AsyncProcessStatus.NONE &&
+        !review?.productId && <Text>Product ID is missing.</Text>}
+
+      {product && (
+        <ProductItem
+          product={product}
+          isSignedIn={isAuthenticated}
+          showControls={false}
+        />
       )}
 
       {reviewUpdateStatus.status === AsyncProcessStatus.NONE &&
@@ -157,9 +204,6 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
             userId={userId}
           />
         )}
-
-      {reviewUpdateStatus.status === AsyncProcessStatus.NONE &&
-        !review?.productId && <Text>Product ID is missing.</Text>}
     </Card>
   );
 };
