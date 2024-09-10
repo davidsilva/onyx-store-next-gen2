@@ -61,12 +61,12 @@ const schema = a
         username: a.string().required(),
         preferredUsername: a.string(),
         // We don't want people to change their email directly in the db. Better if we allow them to change it via Cognito, and then update it in the db using a Lambda function.
-        // Also, we don't want other people to see other people's email addresses.
+        // Also, we don't want other people to see other people's email addresses. Note the use of ownerDefinedIn("profileOwner") in the email field.
         email: a
           .string()
           .authorization((allow) => [
-            allow.owner().to(["read"]),
             allow.group("Admins"),
+            allow.ownerDefinedIn("profileOwner").to(["read"]),
           ]),
         birthdate: a.date(),
         givenName: a.string(),
@@ -77,7 +77,7 @@ const schema = a
         profileOwner: a
           .string()
           .authorization((allow) => [
-            allow.owner().to(["read"]),
+            allow.ownerDefinedIn("profileOwner").to(["read"]),
             allow.group("Admins"),
             allow.guest().to(["read"]),
             allow.authenticated().to(["read"]),
@@ -94,7 +94,6 @@ const schema = a
         allow.group("Admins"),
         allow.guest().to(["read"]),
         allow.authenticated().to(["read"]),
-        allow.owner().to(["read", "create", "update"]),
       ]),
 
     // sets isArchived to true by default, false if "archive" is false
