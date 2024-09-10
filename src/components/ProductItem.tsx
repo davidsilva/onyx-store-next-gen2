@@ -6,9 +6,14 @@ import Link from "next/link";
 interface ProductItemProps {
   product: ProductWithReviews;
   isSignedIn: boolean;
+  showControls?: boolean;
 }
 
-const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
+const ProductItem: React.FC<ProductItemProps> = ({
+  product,
+  isSignedIn,
+  showControls = true,
+}) => {
   // console.log("ProductItem", product);
 
   if (!product) {
@@ -40,10 +45,12 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
     <div className="rounded-lg border-black border my-1 p-2 flex gap-2">
       {mainImage && mainImageS3Key && (
         <div>
-          <ImageComponent
-            path={mainImageS3Key}
-            altText={mainImageAlt || product.name}
-          />
+          <Link href={`/products/${product.id}`}>
+            <ImageComponent
+              path={mainImageS3Key}
+              altText={mainImageAlt || product.name}
+            />
+          </Link>
         </div>
       )}
       <div>
@@ -59,7 +66,9 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, isSignedIn }) => {
           })}
         </p>
         <p>Reviews: {product.reviews?.length || 0}</p>
-        <ProductItemControls product={product} isSignedIn={isSignedIn} />
+        {showControls && (
+          <ProductItemControls product={product} isSignedIn={isSignedIn} />
+        )}
       </div>
     </div>
   );
