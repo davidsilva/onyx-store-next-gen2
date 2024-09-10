@@ -88,12 +88,14 @@ export const getReview = /* GraphQL */ `query GetReview($id: ID!) {
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -116,6 +118,7 @@ export const getUserProfile = /* GraphQL */ `query GetUserProfile($id: ID!) {
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
@@ -220,6 +223,74 @@ export const listProducts = /* GraphQL */ `query ListProducts(
   APITypes.ListProductsQueryVariables,
   APITypes.ListProductsQuery
 >;
+export const listReviewByProductId = /* GraphQL */ `query ListReviewByProductId(
+  $filter: ModelReviewFilterInput
+  $limit: Int
+  $nextToken: String
+  $productId: ID!
+  $sortDirection: ModelSortDirection
+) {
+  listReviewByProductId(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    productId: $productId
+    sortDirection: $sortDirection
+  ) {
+    items {
+      content
+      createdAt
+      id
+      owner
+      productId
+      rating
+      title
+      updatedAt
+      userId
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListReviewByProductIdQueryVariables,
+  APITypes.ListReviewByProductIdQuery
+>;
+export const listReviewByUserId = /* GraphQL */ `query ListReviewByUserId(
+  $filter: ModelReviewFilterInput
+  $limit: Int
+  $nextToken: String
+  $sortDirection: ModelSortDirection
+  $userId: ID!
+) {
+  listReviewByUserId(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    sortDirection: $sortDirection
+    userId: $userId
+  ) {
+    items {
+      content
+      createdAt
+      id
+      owner
+      productId
+      rating
+      title
+      updatedAt
+      userId
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListReviewByUserIdQueryVariables,
+  APITypes.ListReviewByUserIdQuery
+>;
 export const listReviews = /* GraphQL */ `query ListReviews(
   $filter: ModelReviewFilterInput
   $limit: Int
@@ -233,6 +304,7 @@ export const listReviews = /* GraphQL */ `query ListReviews(
       owner
       productId
       rating
+      title
       updatedAt
       userId
       __typename
@@ -264,6 +336,7 @@ export const listUserProfileByEmail = /* GraphQL */ `query ListUserProfileByEmai
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -302,6 +375,7 @@ export const listUserProfileByUserId = /* GraphQL */ `query ListUserProfileByUse
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -340,6 +414,7 @@ export const listUserProfileByUsername = /* GraphQL */ `query ListUserProfileByU
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -370,6 +445,7 @@ export const listUserProfiles = /* GraphQL */ `query ListUserProfiles(
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName

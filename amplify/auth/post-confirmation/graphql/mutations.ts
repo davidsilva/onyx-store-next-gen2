@@ -125,12 +125,14 @@ export const createReview = /* GraphQL */ `mutation CreateReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -159,6 +161,7 @@ export const createUserProfile = /* GraphQL */ `mutation CreateUserProfile(
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
@@ -268,12 +271,14 @@ export const deleteReview = /* GraphQL */ `mutation DeleteReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -302,6 +307,7 @@ export const deleteUserProfile = /* GraphQL */ `mutation DeleteUserProfile(
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
@@ -411,12 +417,14 @@ export const updateReview = /* GraphQL */ `mutation UpdateReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -445,6 +453,7 @@ export const updateUserProfile = /* GraphQL */ `mutation UpdateUserProfile(
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName

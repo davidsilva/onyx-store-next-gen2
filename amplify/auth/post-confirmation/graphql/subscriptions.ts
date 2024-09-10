@@ -93,12 +93,14 @@ export const onCreateReview = /* GraphQL */ `subscription OnCreateReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -127,6 +129,7 @@ export const onCreateUserProfile = /* GraphQL */ `subscription OnCreateUserProfi
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
@@ -232,12 +235,14 @@ export const onDeleteReview = /* GraphQL */ `subscription OnDeleteReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -266,6 +271,7 @@ export const onDeleteUserProfile = /* GraphQL */ `subscription OnDeleteUserProfi
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
@@ -371,12 +377,14 @@ export const onUpdateReview = /* GraphQL */ `subscription OnUpdateReview(
     }
     productId
     rating
+    title
     updatedAt
     user {
       birthdate
       createdAt
       email
       familyName
+      favoriteColor
       givenName
       id
       middleName
@@ -405,6 +413,7 @@ export const onUpdateUserProfile = /* GraphQL */ `subscription OnUpdateUserProfi
     createdAt
     email
     familyName
+    favoriteColor
     givenName
     id
     middleName
