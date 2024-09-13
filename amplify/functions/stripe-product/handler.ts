@@ -4,6 +4,16 @@ When there is an INSERT event in the DynamoDB Product table, this handler will c
 The UPDATE event calls the Stripe API to update the product and price with the new values.
 
 The REMOVE event is not handled in this example, but you *could* add logic to delete the product and price from Stripe when a product is deleted from the Product table. But our app generally wants to do soft deletes, so we might mimic that behavior in Stripe by deactivating the product and price instead of deleting them.
+
+Possible improvements:
+
+* Retry logic in case of network or Stripe API errors.
+* Dead Letter Queue for failed events. I.e., use an SQS queue to store failed events and then process them later.
+* Set up CloudWatch alarms to monitor the number of failed events.
+* Idempotency: Add idempotency keys to Stripe API calls to prevent duplicate requests.
+* Show some indication in the UI regarding the status of the Stripe product and price. E.g., show a spinner while the product and price are being created or updated. In most cases, the Stripe API calls should be fast -- and it might be a distraction to show a status. But if the Stripe product and price IDs are pending, and therefore the product can't be purchased, we want to show that to the admin. There could be a display on an admin dashboard that shows the status of Stripe and any other third-party integrations.
+
+In a more complicated app, we could create an SNS topic for DynamoDB Stream events. We could use some combination of SQS, SNS, Kinesis and EventBridge to integerate multiple apps, provide an API for third-party developers.... But for *this* little app, where we might end up Stripe as the only third-party integration, and maybe AWS Comprehend as the only other service where there would be an independent process, we can keep things simple. Like, instead of binary statuses for a Product, e.g., isArchived, isActive, we could multiple states to reflect pending Stripe product and price IDs, awaiting approval, etc., and then reflect those states in the UI on the admin dashboard, product page, etc.
 */
 import {
   DynamoDBClient,
@@ -264,16 +274,22 @@ async function updateStripePrice(product: Record<string, any>) {
     // Check for existing prices with the same value.
     const existingPrices = await stripe.prices.list({
       product: product.stripeProductId,
-      active: true,
     });
 
     let newStripePrice;
+    logger.info(`existingPrices.data ${JSON.stringify(existingPrices.data)}`);
     const existingPrice = existingPrices.data.find(
       (price) => price.unit_amount === product.price && price.currency === "usd"
     );
-
+    logger.info(`existingPrice ${JSON.stringify(existingPrice)}`);
     if (existingPrice) {
       newStripePrice = existingPrice;
+      // Restore the old price if it was deactivated.
+      if (!existingPrice.active) {
+        await stripe.prices.update(existingPrice.id, {
+          active: true,
+        });
+      }
       logger.info(
         `Found existing Stripe price: ${JSON.stringify(newStripePrice)}`
       );
@@ -293,7 +309,6 @@ async function updateStripePrice(product: Record<string, any>) {
     const stripePrice = await stripe.prices.update(product.stripePriceId, {
       active: false,
     });
-
     logger.info(`Deactivated old Stripe price: ${JSON.stringify(stripePrice)}`);
 
     // Update the product to use the new price

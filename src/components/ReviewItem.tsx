@@ -8,8 +8,6 @@ type ReviewItemProps = {
 };
 
 const ReviewItem = ({ review, currentUser }: ReviewItemProps) => {
-  console.log("ReviewItem review", review);
-  console.log("ReviewItem currentUser", currentUser);
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {

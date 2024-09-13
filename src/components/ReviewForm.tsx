@@ -3,12 +3,10 @@
 import { Review } from "@/types";
 import { useForm, SubmitHandler } from "react-hook-form";
 import {
-  Text,
   TextField,
   TextAreaField,
   Button,
   SelectField,
-  CheckboxField,
 } from "@aws-amplify/ui-react";
 import { useEffect } from "react";
 
@@ -25,19 +23,11 @@ type ReviewFormProps = {
   productId: string;
   userId: string;
 };
-const ReviewForm = ({
-  onSubmit,
-  review,
-  setReview,
-  productId,
-  userId,
-}: ReviewFormProps) => {
+const ReviewForm = ({ onSubmit, review, setReview }: ReviewFormProps) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
-    getValues,
     setValue,
   } = useForm<FormData>({
     defaultValues: {
@@ -98,9 +88,9 @@ const ReviewForm = ({
           />
         </div>
         <div>
-          <button className="btn btn-blue" type="submit">
+          <Button className="btn btn-blue" type="submit">
             Submit
-          </button>
+          </Button>
         </div>
       </form>
     </>

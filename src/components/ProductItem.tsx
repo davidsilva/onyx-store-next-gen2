@@ -14,8 +14,6 @@ const ProductItem: React.FC<ProductItemProps> = ({
   isSignedIn,
   showControls = true,
 }) => {
-  // console.log("ProductItem", product);
-
   if (!product) {
     return null;
   }
@@ -34,7 +32,6 @@ const ProductItem: React.FC<ProductItemProps> = ({
     if (!mainImage) {
       mainImage = product.images[0];
     }
-    // console.log("mainImage", mainImage);
     mainImageS3Key = mainImage ? mainImage.s3Key : product.images[0].s3Key;
     mainImageAlt = mainImage
       ? mainImage.alt || product.name

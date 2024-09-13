@@ -20,13 +20,6 @@ type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
   price: string;
 };
 
-// type FormData = {
-//   name: string;
-//   description: string;
-//   price: string;
-//   mainImageS3Key: string | null;
-// };
-
 const client = generateClient<Schema>({
   authMode: "userPool",
 });

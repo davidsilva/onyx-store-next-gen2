@@ -57,7 +57,6 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
           }
         );
 
-        console.log("result", result);
         if (result.data) {
           setReview(result.data);
           setLoadingStatus({
@@ -93,7 +92,6 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      console.log("fetchProduct productId", review?.productId);
       if (!review?.productId) {
         return;
       }
@@ -113,7 +111,6 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
         }
       );
 
-      console.log("fetchProduct result", result);
       setProduct(result.data);
     };
 
@@ -136,8 +133,6 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
         productId: review.productId,
         userId: userId,
       });
-
-      console.log("review create result", result);
 
       setReviewUpdateStatus({
         status: AsyncProcessStatus.SUCCESS,

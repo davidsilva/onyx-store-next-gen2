@@ -81,7 +81,6 @@ const ProductForm = ({
       images.length > 0 &&
       !images.some((image) => image.s3Key === getValues("mainImageS3Key"))
     ) {
-      console.log("resetting main image");
       setValue("mainImageS3Key", "");
     }
   }, [images, getValues, setValue]);

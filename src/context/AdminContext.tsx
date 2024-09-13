@@ -25,7 +25,6 @@ export const AdminContextProvider: React.FC<AdminContextProviderProps> = ({
 
   useEffect(() => {
     const hubListenerCancelToken = Hub.listen("auth", ({ payload }) => {
-      console.log("auth event", payload.event);
       switch (payload.event) {
         case "signedIn":
           console.log("signedIn");
@@ -53,7 +52,6 @@ export const AdminContextProvider: React.FC<AdminContextProviderProps> = ({
 
   useEffect(() => {
     const checkAdmin = async () => {
-      console.log("Checking admin status");
       let admin = false;
       try {
         const session = await fetchAuthSession();
