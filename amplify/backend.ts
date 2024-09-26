@@ -24,9 +24,11 @@ const backend = defineBackend({
 
 const productTable = backend.data.resources.tables["Product"];
 
+const reviewTable = backend.data.resources.tables["Review"];
+
 const dataStack = Stack.of(backend.data);
 
-const myLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
+const stripeProductLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
   handler: "index.handler",
   code: lambdaCodeFromAssetHelper(
     path.resolve("amplify/functions/stripe-product/handler.ts"),
@@ -38,13 +40,13 @@ const myLambda = new LambdaFunction(dataStack, "MyCustomFunction", {
   },
 });
 
-const eventSource = new DynamoEventSource(productTable, {
+const productTableEventSource = new DynamoEventSource(productTable, {
   startingPosition: StartingPosition.LATEST,
 });
 
-myLambda.addEventSource(eventSource);
+stripeProductLambda.addEventSource(productTableEventSource);
 
-myLambda.role?.attachInlinePolicy(
+stripeProductLambda.role?.attachInlinePolicy(
   new Policy(Stack.of(productTable), "DynamoDBPolicy", {
     statements: [
       new PolicyStatement({
@@ -63,12 +65,12 @@ myLambda.role?.attachInlinePolicy(
   })
 );
 
-const stripeSecureKeyArn = `arn:aws:ssm:${Stack.of(myLambda).region}:${
-  Stack.of(myLambda).account
-}:parameter/stripe/STRIPE_SECURE_KEY`;
+const stripeSecureKeyArn = `arn:aws:ssm:${
+  Stack.of(stripeProductLambda).region
+}:${Stack.of(stripeProductLambda).account}:parameter/stripe/STRIPE_SECURE_KEY`;
 
-myLambda.role?.attachInlinePolicy(
-  new Policy(Stack.of(myLambda), "SSMPolicy", {
+stripeProductLambda.role?.attachInlinePolicy(
+  new Policy(Stack.of(stripeProductLambda), "SSMPolicy", {
     statements: [
       new PolicyStatement({
         effect: Effect.ALLOW,
