@@ -46,6 +46,12 @@ const schema = a
         product: a.belongsTo("Product", "productId"),
         userId: a.id(),
         user: a.belongsTo("UserProfile", "userId"),
+        sentiment: a.string(),
+        sentimentScoreMixed: a.float(),
+        sentimentScoreNegative: a.float(),
+        sentimentScoreNeutral: a.float(),
+        sentimentScorePositive: a.float(),
+        languageCode: a.string(),
       })
       .secondaryIndexes((index) => [index("productId"), index("userId")])
       .authorization((allow) => [
