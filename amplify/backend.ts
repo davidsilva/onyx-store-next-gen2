@@ -135,3 +135,47 @@ writeReviewToS3Lambda.addToRolePolicy(
     resources: [`${s3Bucket.bucketArn}`, `${s3Bucket.bucketArn}/reviews/*`], // For GetObject and PutObject actions
   })
 );
+
+const detectReviewSentimentLambda = new LambdaFunction(
+  dataStack,
+  "DetectReviewSentimentLambdaFunction",
+  {
+    handler: "index.handler",
+    code: lambdaCodeFromAssetHelper(
+      path.resolve("amplify/functions/detect-review-sentiment/handler.ts"),
+      { buildMode: BuildMode.Esbuild }
+    ),
+    runtime: LambdaRuntime.NODEJS_20_X,
+    environment: {
+      REVIEW_TABLE_NAME: reviewTable.tableName,
+    },
+  }
+);
+
+detectReviewSentimentLambda.addEventSource(reviewTableEventSource);
+
+detectReviewSentimentLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "comprehend:DetectSentiment",
+      "comprehend:DetectDominantLanguage",
+      "comprehend:DetectEntities",
+      "comprehend:DetectKeyPhrases",
+    ],
+    resources: ["*"],
+  })
+);
+
+detectReviewSentimentLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams",
+    ],
+    resources: [reviewTable.tableArn],
+  })
+);
