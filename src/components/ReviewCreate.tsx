@@ -74,6 +74,7 @@ const ReviewCreate = ({ productId }: { productId: string }) => {
         content: data.content,
         productId: productId,
         userId: userId,
+        sentimentProcessed: false,
       });
 
       console.log("review create result", result);

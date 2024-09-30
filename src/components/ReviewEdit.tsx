@@ -132,6 +132,7 @@ const ReviewEdit = ({ reviewId }: { reviewId: string }) => {
         content: data.content,
         productId: review.productId,
         userId: userId,
+        sentimentProcessed: false,
       });
 
       setReviewUpdateStatus({
