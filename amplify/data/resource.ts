@@ -123,6 +123,24 @@ const schema = a
           entry: "./resolvers/archiveProduct.js",
         })
       ),
+
+    SentimentCountsType: a.customType({
+      POSITIVE: a.integer(),
+      NEGATIVE: a.integer(),
+      NEUTRAL: a.integer(),
+      MIXED: a.integer(),
+    }),
+
+    countReviewSentiments: a
+      .query()
+      .returns(a.ref("SentimentCountsType"))
+      .authorization((allow) => [allow.group("Admins")])
+      .handler(
+        a.handler.custom({
+          dataSource: a.ref("Review"),
+          entry: "./resolvers/countSentiments.js",
+        })
+      ),
   })
   .authorization((allow) => [allow.resource(postConfirmation)]);
 // .authorization((allow) => [allow.resource(createStripeProductFunction)])
