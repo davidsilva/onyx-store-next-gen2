@@ -52,6 +52,7 @@ const schema = a
         sentimentScoreNeutral: a.float(),
         sentimentScorePositive: a.float(),
         languageCode: a.string(),
+        sentimentProcessed: a.boolean(),
       })
       .secondaryIndexes((index) => [index("productId"), index("userId")])
       .authorization((allow) => [
@@ -60,6 +61,14 @@ const schema = a
         allow.owner().to(["read", "create", "update"]),
         allow.group("Admins"),
       ]),
+
+    SentimentCounts: a
+      .model({
+        sentiment: a.string().required(),
+        count: a.integer().required(),
+      })
+      .identifier(["sentiment"])
+      .authorization((allow) => [allow.group("Admins")]),
 
     UserProfile: a
       .model({
