@@ -11,12 +11,12 @@ import {
   DetectDominantLanguageCommand,
   DetectSentimentCommand,
   LanguageCode,
-  DetectSentimentCommandOutput,
   DetectSentimentResponse,
 } from "@aws-sdk/client-comprehend";
+
 const logger = new Logger({
   logLevel: "INFO",
-  serviceName: "dynamodb-stream-handler",
+  serviceName: "detect-review-sentiment",
 });
 
 const comprehendClient = new ComprehendClient({});
@@ -49,6 +49,7 @@ const detectSentiment = async (
     LanguageCode: languageCode,
   };
   const command = new DetectSentimentCommand(params);
+  logger.info("Detecting sentiment", { text, languageCode });
 
   try {
     const response = await comprehendClient.send(command);
@@ -65,7 +66,6 @@ const updateReview = async (
   languageCode: string
 ) => {
   if (sentiment && sentiment.Sentiment && sentiment.SentimentScore) {
-    // Update the review with the sentiment
     const mixedScore = sentiment.SentimentScore.Mixed ?? 0;
     const negativeScore = sentiment.SentimentScore.Negative ?? 0;
     const neutralScore = sentiment.SentimentScore.Neutral ?? 0;
@@ -77,7 +77,7 @@ const updateReview = async (
         id: review.id,
       }),
       UpdateExpression:
-        "SET sentiment = :sentiment, sentimentScoreMixed = :mixed, sentimentScoreNegative = :negative, sentimentScoreNeutral = :neutral, sentimentScorePositive = :positive, languageCode = :languageCode",
+        "SET sentiment = :sentiment, sentimentScoreMixed = :mixed, sentimentScoreNegative = :negative, sentimentScoreNeutral = :neutral, sentimentScorePositive = :positive, languageCode = :languageCode, sentimentProcessed = :sentimentProcessed",
       ExpressionAttributeValues: {
         ":sentiment": { S: sentiment?.Sentiment },
         ":mixed": { N: mixedScore.toString() },
@@ -85,12 +85,12 @@ const updateReview = async (
         ":neutral": { N: neutralScore.toString() },
         ":positive": { N: positiveScore.toString() },
         ":languageCode": { S: languageCode },
+        ":sentimentProcessed": { BOOL: true },
       },
     };
 
     try {
       await dynamoDBClient.send(new UpdateItemCommand(updateParams));
-      logger.info("Updated review with sentiment analysis result");
     } catch (error) {
       logger.error("Error updating review", { error });
     }
@@ -98,48 +98,82 @@ const updateReview = async (
 };
 
 export const handler: DynamoDBStreamHandler = async (event) => {
-  logger.info("Received event", { event });
-
   for (const record of event.Records) {
-    logger.info("Processing record", { record });
+    if (record.eventName === "INSERT" || record.eventName === "MODIFY") {
+      const dynamoRecord = record as DynamoDBRecord;
 
-    if (record.eventName !== "INSERT" && record.eventName !== "MODIFY") {
-      continue;
-    }
+      if (dynamoRecord.dynamodb?.NewImage) {
+        const newImage = dynamoRecord.dynamodb.NewImage as Record<
+          string,
+          AttributeValue
+        >;
+        const review = unmarshall(newImage);
+        // logger.info("Unmarshalled review", { review });
 
-    const dynamoRecord = record as DynamoDBRecord;
+        if (review.sentimentProcessed && record.eventName === "MODIFY") {
+          const oldImage = dynamoRecord.dynamodb.OldImage as Record<
+            string,
+            AttributeValue
+          >;
+          const oldReview = unmarshall(oldImage);
 
-    if (dynamoRecord.dynamodb?.NewImage) {
-      const newImage = dynamoRecord.dynamodb.NewImage as Record<
-        string,
-        AttributeValue
-      >;
-      const review = unmarshall(newImage);
-      logger.info("Unmarshalled review", { review });
+          if (
+            oldReview.title !== review.title ||
+            oldReview.content !== review.content
+          ) {
+            const resetParams = {
+              TableName: process.env.REVIEW_TABLE_NAME,
+              Key: marshall({
+                id: review.id,
+              }),
+              UpdateExpression: "SET sentimentProcessed = :sentimentProcessed",
+              ExpressionAttributeValues: {
+                ":sentimentProcessed": { BOOL: false },
+              },
+            };
 
-      try {
-        const reviewText = `${review.title} ${review.content}`;
-
-        // Get the language using AWS Comprehend
-        const languageCode = await detectLanguage(reviewText);
-        logger.info("Detected language", { languageCode });
-
-        if (languageCode) {
-          // Get the sentiment using AWS Comprehend
-          const sentiment = await detectSentiment(reviewText, languageCode);
-          logger.info(
-            `Sentiment analysis result: ${
-              JSON.stringify(sentiment) || "No sentiment detected"
-            }`
-          );
-          if (sentiment) {
-            await updateReview(review, sentiment, languageCode);
+            try {
+              await dynamoDBClient.send(new UpdateItemCommand(resetParams));
+              logger.info(
+                "Reset sentimentProcessed flag due to title or content change"
+              );
+            } catch (error) {
+              logger.error("Error resetting sentimentProcessed flag", {
+                error,
+              });
+            }
           }
         } else {
-          logger.warn("No language detected. Skipping sentiment detection");
+          logger.info(
+            "Sentiment not already processed or record is an INSERT. Processing sentiment analysis"
+          );
+
+          try {
+            const reviewText = `${review.title} ${review.content}`;
+
+            // Get the language using AWS Comprehend
+            const languageCode = await detectLanguage(reviewText);
+            // logger.info("Detected language", { languageCode });
+
+            if (languageCode && !review.sentimentProcessed) {
+              // Get the sentiment using AWS Comprehend
+              const sentiment = await detectSentiment(reviewText, languageCode);
+              // logger.info(
+              //   `Sentiment analysis result: ${
+              //     JSON.stringify(sentiment) || "No sentiment detected"
+              //   }`
+              // );
+
+              if (sentiment && sentiment.Sentiment) {
+                await updateReview(review, sentiment, languageCode);
+              }
+            } else {
+              logger.warn("No language detected. Skipping sentiment detection");
+            }
+          } catch (error) {
+            logger.error("Error getting language and sentiment", { error });
+          }
         }
-      } catch (error) {
-        logger.error("Error getting language and sentiment", { error });
       }
     }
   }
