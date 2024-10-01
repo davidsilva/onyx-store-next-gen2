@@ -1,5 +1,3 @@
-import { util } from "@aws-appsync/utils";
-
 /**
  * Generates a request for counting the number of sentiments in Reviews table in DynamoDB. Datasource is the Reviews table.
  *
