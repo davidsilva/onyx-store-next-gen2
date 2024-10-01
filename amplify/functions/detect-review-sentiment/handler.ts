@@ -15,7 +15,7 @@ import {
 } from "@aws-sdk/client-comprehend";
 
 const logger = new Logger({
-  logLevel: "INFO",
+  logLevel: "SILENT",
   serviceName: "detect-review-sentiment",
 });
 
