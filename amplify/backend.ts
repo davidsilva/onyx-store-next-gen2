@@ -85,6 +85,7 @@ stripeProductLambda.role?.attachInlinePolicy(
 );
 
 const reviewTable = backend.data.resources.tables["Review"];
+const sentimentCountsTable = backend.data.resources.tables["SentimentCounts"];
 
 const reviewTableEventSource = new DynamoEventSource(reviewTable, {
   startingPosition: StartingPosition.LATEST,
@@ -102,6 +103,7 @@ const detectReviewSentimentLambda = new LambdaFunction(
     runtime: LambdaRuntime.NODEJS_20_X,
     environment: {
       REVIEW_TABLE_NAME: reviewTable.tableName,
+      SENTIMENT_COUNTS_TABLE_NAME: sentimentCountsTable.tableName,
     },
   }
 );
@@ -131,5 +133,37 @@ detectReviewSentimentLambda.addToRolePolicy(
       "dynamodb:ListStreams",
     ],
     resources: [reviewTable.tableArn],
+  })
+);
+
+const updateSentimentCountsLambda = new LambdaFunction(
+  dataStack,
+  "UpdateSentimentCountsLambdaFunction",
+  {
+    handler: "index.handler",
+    code: lambdaCodeFromAssetHelper(
+      path.resolve("amplify/functions/update-sentiment-counts/handler.ts"),
+      { buildMode: BuildMode.Esbuild }
+    ),
+    runtime: LambdaRuntime.NODEJS_20_X,
+    environment: {
+      SENTIMENT_COUNTS_TABLE_NAME: sentimentCountsTable.tableName,
+    },
+  }
+);
+
+updateSentimentCountsLambda.addEventSource(reviewTableEventSource);
+
+updateSentimentCountsLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams",
+    ],
+    resources: [reviewTable.tableArn, sentimentCountsTable.tableArn],
   })
 );
