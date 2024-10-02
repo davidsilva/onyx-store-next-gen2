@@ -15,12 +15,25 @@ const schema = a
         stripeProductId: a.string(),
         stripePriceId: a.string(),
         reviews: a.hasMany("Review", "productId"),
+        status: a.ref("ProductStatusType"),
       })
       .authorization((allow) => [
         allow.guest().to(["read"]),
         allow.authenticated().to(["read"]),
         allow.group("Admins"),
       ]),
+
+    ReviewStatusType: a.enum([
+      "PENDING",
+      "ACTIVE",
+      "ARCHIVED",
+      "REJECTED",
+      "FLAGGED",
+      "UNDER_REVIEW",
+      "APPROVED",
+    ]),
+
+    ProductStatusType: a.enum(["PENDING", "ACTIVE", "ARCHIVED"]),
 
     ProductImage: a
       .model({
@@ -53,6 +66,7 @@ const schema = a
         sentimentScorePositive: a.float(),
         languageCode: a.string(),
         sentimentProcessed: a.boolean(),
+        status: a.ref("ReviewStatusType"),
       })
       .secondaryIndexes((index) => [index("productId"), index("userId")])
       .authorization((allow) => [
@@ -68,6 +82,30 @@ const schema = a
         count: a.integer().required(),
       })
       .identifier(["sentiment"])
+      .authorization((allow) => [allow.group("Admins")]),
+
+    ProductStatuses: a
+      .model({
+        status: a.string().required(),
+        count: a.integer().required(),
+      })
+      .identifier(["status"])
+      .authorization((allow) => [allow.group("Admins")]),
+
+    GeneralAggregates: a
+      .model({
+        entityType: a.string().required(), // E.g., "Product", "Review", "User"
+        count: a.integer().required(),
+      })
+      .identifier(["entityType"])
+      .authorization((allow) => [allow.group("Admins")]),
+
+    ReviewStatuses: a
+      .model({
+        status: a.string().required(),
+        count: a.integer().required(),
+      })
+      .identifier(["status"])
       .authorization((allow) => [allow.group("Admins")]),
 
     UserProfile: a
