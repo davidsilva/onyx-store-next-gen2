@@ -167,3 +167,52 @@ updateSentimentCountsLambda.addToRolePolicy(
     resources: [reviewTable.tableArn, sentimentCountsTable.tableArn],
   })
 );
+
+const generalAggregatesTable =
+  backend.data.resources.tables["GeneralAggregates"];
+
+const keepAggregatesLambda = new LambdaFunction(
+  dataStack,
+  "KeepAggregatesLambdaFunction",
+  {
+    handler: "index.handler",
+    code: lambdaCodeFromAssetHelper(
+      path.resolve("amplify/functions/keep-aggregates/handler.ts"),
+      { buildMode: BuildMode.Esbuild }
+    ),
+    runtime: LambdaRuntime.NODEJS_20_X,
+    environment: {
+      GENERAL_AGGREGATES_TABLE_NAME: generalAggregatesTable.tableName,
+    },
+  }
+);
+
+keepAggregatesLambda.addEventSource(reviewTableEventSource);
+keepAggregatesLambda.addEventSource(productTableEventSource);
+
+keepAggregatesLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "dynamodb:GetItem",
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams",
+    ],
+    resources: [productTable.tableArn, reviewTable.tableArn],
+  })
+);
+
+keepAggregatesLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams",
+    ],
+    resources: [generalAggregatesTable.tableArn],
+  })
+);
