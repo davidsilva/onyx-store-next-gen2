@@ -60,12 +60,17 @@ const updateCount = async (
   const params = {
     TableName: tableName,
     Key: marshall({ entityType }),
-    UpdateExpression: "ADD #count :increment",
+    UpdateExpression:
+      "SET #count = if_not_exists(#count, :zero) + :increment, #updatedAt = :now, #createdAt = if_not_exists(#createdAt, :now)",
     ExpressionAttributeNames: {
       "#count": "count",
+      "#updatedAt": "updatedAt",
+      "#createdAt": "createdAt",
     },
     ExpressionAttributeValues: {
       ":increment": { N: increment.toString() },
+      ":zero": { N: "0" },
+      ":now": { S: new Date().toISOString() },
     },
   };
 
