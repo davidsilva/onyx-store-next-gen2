@@ -4,6 +4,8 @@ import type { DynamoDBStreamHandler } from "aws-lambda";
 import { Logger } from "@aws-lambda-powertools/logger";
 
 const GENERAL_AGGREGATES_TABLE_NAME = process.env.GENERAL_AGGREGATES_TABLE_NAME;
+const REVIEW_TABLE_NAME = process.env.REVIEW_TABLE_NAME;
+const PRODUCT_TABLE_NAME = process.env.PRODUCT_TABLE_NAME;
 
 const logger = new Logger({
   logLevel: "INFO",
@@ -15,7 +17,11 @@ const dynamoDBClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 // Receives events from Product and Review tables
 
 export const handler: DynamoDBStreamHandler = async (event) => {
-  if (!GENERAL_AGGREGATES_TABLE_NAME) {
+  if (
+    !GENERAL_AGGREGATES_TABLE_NAME ||
+    !REVIEW_TABLE_NAME ||
+    !PRODUCT_TABLE_NAME
+  ) {
     console.error("Table names are not defined.", {
       GENERAL_AGGREGATES_TABLE_NAME,
     });
@@ -36,9 +42,9 @@ export const handler: DynamoDBStreamHandler = async (event) => {
         `Received ${record.eventName} event from ${eventSourceTableName}`
       );
 
-      if (eventSourceTableName.includes("Product")) {
+      if (eventSourceTableName.includes(PRODUCT_TABLE_NAME)) {
         await updateCount(GENERAL_AGGREGATES_TABLE_NAME, "Product", increment);
-      } else if (eventSourceTableName.includes("Review")) {
+      } else if (eventSourceTableName.includes(REVIEW_TABLE_NAME)) {
         await updateCount(GENERAL_AGGREGATES_TABLE_NAME, "Review", increment);
       }
     }

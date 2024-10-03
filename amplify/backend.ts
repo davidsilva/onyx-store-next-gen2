@@ -183,6 +183,8 @@ const keepAggregatesLambda = new LambdaFunction(
     runtime: LambdaRuntime.NODEJS_20_X,
     environment: {
       GENERAL_AGGREGATES_TABLE_NAME: generalAggregatesTable.tableName,
+      REVIEW_TABLE_NAME: reviewTable.tableName,
+      PRODUCT_TABLE_NAME: productTable.tableName,
     },
   }
 );
