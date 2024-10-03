@@ -80,6 +80,8 @@ const schema = a
       .model({
         sentiment: a.string().required(),
         count: a.integer().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
       })
       .identifier(["sentiment"])
       .authorization((allow) => [allow.group("Admins")]),
@@ -88,6 +90,8 @@ const schema = a
       .model({
         status: a.string().required(),
         count: a.integer().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
       })
       .identifier(["status"])
       .authorization((allow) => [allow.group("Admins")]),
@@ -96,6 +100,8 @@ const schema = a
       .model({
         entityType: a.string().required(), // E.g., "Product", "Review", "User"
         count: a.integer().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
       })
       .identifier(["entityType"])
       .authorization((allow) => [allow.group("Admins")]),
@@ -104,6 +110,8 @@ const schema = a
       .model({
         status: a.string().required(),
         count: a.integer().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
       })
       .identifier(["status"])
       .authorization((allow) => [allow.group("Admins")]),
