@@ -7,21 +7,26 @@ import {
   TextAreaField,
   Button,
   SelectField,
-  CheckboxField,
 } from "@aws-amplify/ui-react";
 import ImageUploader from "./ImageUploader";
-import { Product, ProductImage } from "@/types";
+import {
+  Product as ProductType,
+  ProductImage as ProductImageType,
+} from "@/types";
 import { useEffect, useState } from "react";
+import { type Schema } from "@/../amplify/data/resource";
 
-type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
+type ProductStatusType = Schema["ProductStatusType"]["type"];
+
+type FormData = Omit<ProductType, "id" | "images" | "isArchived" | "price"> & {
   price: string;
 };
 
 type ProductFormProps = {
-  product: Product | null;
-  setProduct: React.Dispatch<React.SetStateAction<Product | null>>;
-  images: ProductImage[];
-  setImages: React.Dispatch<React.SetStateAction<ProductImage[]>>;
+  product: ProductType | null;
+  setProduct: React.Dispatch<React.SetStateAction<ProductType | null>>;
+  images: ProductImageType[];
+  setImages: React.Dispatch<React.SetStateAction<ProductImageType[]>>;
   onSubmit: SubmitHandler<FormData>;
 };
 
@@ -40,9 +45,6 @@ const ProductForm = ({
   setImages,
   onSubmit,
 }: ProductFormProps) => {
-  // Manage the isActive checkbox state independently within the ProductForm component, avoiding conflicts between the checked attribute and the onChange handler
-  const [isActive, setIsActive] = useState(product?.isActive ?? false);
-
   const {
     register,
     handleSubmit,
@@ -56,12 +58,18 @@ const ProductForm = ({
       description: "",
       price: "",
       mainImageS3Key: "",
+      status: "PENDING",
     },
   });
 
   useEffect(() => {
-    setIsActive(product?.isActive ?? false);
-  }, [product]);
+    if (product) {
+      setValue("name", product.name || "");
+      setValue("description", product.description || "");
+      setValue("price", convertPriceToDollarsAndCentsString(product.price));
+      setValue("status", product.status as ProductStatusType);
+    }
+  }, [product, setValue]);
 
   useEffect(() => {
     if (product) {
@@ -70,7 +78,7 @@ const ProductForm = ({
         description: product.description || "",
         price: convertPriceToDollarsAndCentsString(product.price),
         mainImageS3Key: product.mainImageS3Key || "",
-        isActive: product.isActive || false,
+        status: (product.status as ProductStatusType) || "PENDING",
       });
     }
   }, [product, reset]);
@@ -151,24 +159,26 @@ const ProductForm = ({
           <ImageUploader setImages={setImages} images={images} />
         </div>
         <div>
-          <CheckboxField
-            {...register("isActive")}
-            checked={isActive}
-            label="Is Active"
+          <SelectField
+            label="Status"
+            {...register("status")}
             onChange={(e) => {
-              const newIsActive = e.currentTarget.checked;
-              setIsActive(newIsActive);
+              const status = e.currentTarget.value as ProductStatusType;
               setProduct((prevProduct) => {
                 if (prevProduct) {
                   return {
                     ...prevProduct,
-                    isActive: newIsActive,
+                    status,
                   };
                 }
                 return prevProduct;
               });
             }}
-          />
+          >
+            <option value="PENDING">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="ARCHIVED">Archived</option>
+          </SelectField>
         </div>
         <div>
           <Button type="submit">Submit</Button>

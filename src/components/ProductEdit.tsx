@@ -9,7 +9,7 @@ import { Product, ProductImage } from "@/types";
 import ProductForm from "./ProductForm";
 import { convertPriceToCentsInteger } from "@/utils/util";
 
-type FormData = Omit<Product, "id" | "images" | "isArchived" | "price"> & {
+type FormData = Omit<Product, "id" | "images" | "price" | "isArchived"> & {
   price: string;
 };
 
@@ -43,9 +43,8 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
               "description",
               "price",
               "mainImageS3Key",
-              "isArchived",
-              "isActive",
               "images.*",
+              "status",
             ],
           }
         );
@@ -108,7 +107,7 @@ const ProductUpdate = ({ id }: ProductUpdateProps) => {
         description: data.description,
         price: convertPriceToCentsInteger(data.price),
         mainImageS3Key: data.mainImageS3Key,
-        isActive: data.isActive,
+        status: data.status,
       });
 
       console.log("product update result", result);

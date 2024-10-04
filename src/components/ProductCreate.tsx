@@ -40,7 +40,7 @@ const ProductCreate = () => {
         description: data.description,
         price: convertPriceToCentsInteger(data.price), // convert to cents
         mainImageS3Key: data.mainImageS3Key,
-        isActive: data.isActive,
+        status: data.status,
       });
 
       console.log("product create result", result);
