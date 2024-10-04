@@ -12,7 +12,7 @@ type ReviewFromSchema = Schema["Review"]["type"];
 export type Product = Omit<
   Pick<
     ProductFromSchema,
-    "id" | "name" | "description" | "price" | "isArchived" | "isActive"
+    "id" | "name" | "description" | "price" | "isArchived" | "status"
   >,
   "images"
 > & {
