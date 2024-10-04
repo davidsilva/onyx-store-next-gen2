@@ -23,16 +23,6 @@ const schema = a
         allow.group("Admins"),
       ]),
 
-    ReviewStatusType: a.enum([
-      "PENDING",
-      "ACTIVE",
-      "ARCHIVED",
-      "REJECTED",
-      "FLAGGED",
-      "UNDER_REVIEW",
-      "APPROVED",
-    ]),
-
     ProductStatusType: a.enum(["PENDING", "ACTIVE", "ARCHIVED"]),
 
     ProductImage: a
@@ -76,6 +66,16 @@ const schema = a
         allow.group("Admins"),
       ]),
 
+    ReviewStatusType: a.enum([
+      "PENDING",
+      "ACTIVE",
+      "ARCHIVED",
+      "REJECTED",
+      "FLAGGED",
+      "UNDER_REVIEW",
+      "APPROVED",
+    ]),
+
     SentimentCounts: a
       .model({
         sentiment: a.string().required(),
@@ -96,16 +96,6 @@ const schema = a
       .identifier(["status"])
       .authorization((allow) => [allow.group("Admins")]),
 
-    GeneralAggregates: a
-      .model({
-        entityType: a.string().required(), // E.g., "Product", "Review", "User"
-        count: a.integer().required(),
-        createdAt: a.datetime(),
-        updatedAt: a.datetime(),
-      })
-      .identifier(["entityType"])
-      .authorization((allow) => [allow.group("Admins")]),
-
     ReviewStatuses: a
       .model({
         status: a.string().required(),
@@ -114,6 +104,16 @@ const schema = a
         updatedAt: a.datetime(),
       })
       .identifier(["status"])
+      .authorization((allow) => [allow.group("Admins")]),
+
+    GeneralAggregates: a
+      .model({
+        entityType: a.string().required(), // E.g., "Product", "Review", "User"
+        count: a.integer().required(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
+      })
+      .identifier(["entityType"])
       .authorization((allow) => [allow.group("Admins")]),
 
     UserProfile: a
