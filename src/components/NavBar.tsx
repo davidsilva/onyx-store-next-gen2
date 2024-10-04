@@ -85,6 +85,11 @@ export default function NavBar({ className }: NavBarProps) {
       label: "Add Product",
       isAdmin: true,
     },
+    {
+      href: "/admin/dashboard",
+      label: "Dashboard",
+      isAdmin: true,
+    },
   ];
 
   const routes = defaultRoutes.filter((route) => {

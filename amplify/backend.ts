@@ -86,6 +86,8 @@ stripeProductLambda.role?.attachInlinePolicy(
 
 const reviewTable = backend.data.resources.tables["Review"];
 const sentimentCountsTable = backend.data.resources.tables["SentimentCounts"];
+const productStatusesTable = backend.data.resources.tables["ProductStatuses"];
+const reviewStatusesTable = backend.data.resources.tables["ReviewStatuses"];
 
 const reviewTableEventSource = new DynamoEventSource(reviewTable, {
   startingPosition: StartingPosition.LATEST,
@@ -216,5 +218,46 @@ keepAggregatesLambda.addToRolePolicy(
       "dynamodb:ListStreams",
     ],
     resources: [generalAggregatesTable.tableArn],
+  })
+);
+
+const updateStatusesLambda = new LambdaFunction(
+  dataStack,
+  "UpdateStatusesLambdaFunction",
+  {
+    handler: "index.handler",
+    code: lambdaCodeFromAssetHelper(
+      path.resolve("amplify/functions/update-statuses/handler.ts"),
+      { buildMode: BuildMode.Esbuild }
+    ),
+    runtime: LambdaRuntime.NODEJS_20_X,
+    environment: {
+      PRODUCT_STATUSES_TABLE_NAME: productStatusesTable.tableName,
+      PRODUCT_TABLE_NAME: productTable.tableName,
+      REVIEW_STATUSES_TABLE_NAME: reviewStatusesTable.tableName,
+      REVIEW_TABLE_NAME: reviewTable.tableName,
+    },
+  }
+);
+
+updateStatusesLambda.addEventSource(reviewTableEventSource);
+updateStatusesLambda.addEventSource(productTableEventSource);
+
+updateStatusesLambda.addToRolePolicy(
+  new iam.PolicyStatement({
+    actions: [
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams",
+    ],
+    resources: [
+      productTable.tableArn,
+      reviewTable.tableArn,
+      productStatusesTable.tableArn,
+      reviewStatusesTable.tableArn,
+    ],
   })
 );
