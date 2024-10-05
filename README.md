@@ -9,6 +9,7 @@ What we have here is a demo app to show NextJS working with AWS Amplify Gen 2. I
 - authenticated users to customize a user profile
 - authenticated users to checkout and submit payment information (Stripe in demo/dev mode)
 - admin users to create, update and delete products, including uploading images
+- admin users to access a dashboard that shows information such as the sentiment analysis of reviews provided by AWS Comprehend, and statuses of products and reviews.
 
 Those features will allow us to exercise various Amazon services via Amplify, including Cognito, DynamoDB, S3, Lambda, and AppSync (GraphQL).
 
@@ -20,6 +21,7 @@ The app currently includes the following capabilities:
 - creating and updating product and price objects in Stripe, and adding Stripe IDs to our product.
 - allowing users to rate and review products
 - user profiles
+- an admin dashboard showing reviews broken down by sentiment, counts of products and reviews, and the status breakdown of products.
 
 The code in this repo currently demonstrates...
 
@@ -39,7 +41,8 @@ The code in this repo currently demonstrates...
 - use of various components from Amplify's ui-react library.
 - creating a Lambda function -- but not not by using Amplify's `defineFunction()`, as Amplify currently has "circular dependency" issues.
 - using a Lambda function to respond to an INSERT, MODIFY and REMOVE events in the Product table, and then calling the Stripe API to create and update product and price objects, and finally updating the product in our table with the Stripe product and price IDs.
-- an AppSync JavaScript resolver to toggle the "isArchived" field of a Product.
+- Lambda functions that process DynamoDB event streams to aggregate counts of products, reviews, review sentiments, and product statuses.
+- A Lambda function that uses the AWS Comprehend API to detect the language and sentiment of reviews.
 
 ## Relevant Links
 
@@ -58,8 +61,16 @@ The code in this repo currently demonstrates...
 - [Amplify Hub Eventing System](https://docs.amplify.aws/gen1/react/build-a-backend/utilities/hub/)
 - [Amplify Connected Forms](https://docs.amplify.aws/nextjs/build-ui/formbuilder/)
 - [Getting Started with Vite, Vitest, AWS Amplify and React](https://medium.com/@davidavilasilva/getting-started-with-vite-vitest-aws-amplify-and-react-12b7ed337a93) I wrote this article based on Amplify Gen 1 but the parts about implementing custom authentication rather than using the Authenticator component are still relevant.
+- [AWS Comprehend](https://docs.aws.amazon.com/comprehend/latest/dg/what-is.html)
 
 ## Version History
+
+- **\*0.1.4** -- 2024-10-04
+
+  - Release to coincide with [Getting Started with Amplify Gen 2 NextJS Part 6: AWS Comprehend and DynamoDB Aggregations](https://youtu.be/xwfziQsAUc4?si=9X8_L-5LYFs8Q8bL)
+  - Add Lambda functions to process DynamoDB event streams to aggregate counts of products, reviews, review sentiments, and product statuses.
+  - Add Lambda function that uses the AWS Comprehend API to detect the language and sentiment of reviews.
+  - Add status fields to Product and Review models.
 
 - **\*0.1.3** -- 2024-09-12
 
